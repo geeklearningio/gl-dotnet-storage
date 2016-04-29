@@ -1,0 +1,19 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd">
+  <metadata>
+    <id>GeekLearning.Storage</id>
+    <version>1.0.0</version>
+    <authors>autex</authors>
+    <owners>autex</owners>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>GeekLearning.Storage Class Library</description>
+  </metadata>
+  <files>
+    <file src="..\artifacts\bin\GeekLearning.Storage\Release\dnxcore50\GeekLearning.Storage.dll" target="lib\dnxcore50\GeekLearning.Storage.dll" />
+    <file src="..\artifacts\bin\GeekLearning.Storage\Release\dnxcore50\GeekLearning.Storage.dll" target="lib\dnxcore50\GeekLearning.Storage.dll" />
+    <file src="..\artifacts\bin\GeekLearning.Storage\Release\dotnet5.4\GeekLearning.Storage.dll" target="lib\dotnet5.4\GeekLearning.Storage.dll" />
+    <file src="..\artifacts\bin\GeekLearning.Storage\Release\dotnet5.4\GeekLearning.Storage.xml" target="lib\dotnet5.4\GeekLearning.Storage.xml" />
+    <file src="..\artifacts\bin\GeekLearning.Storage\Release\net451\GeekLearning.Storage.dll" target="lib\net451\GeekLearning.Storage.dll" />
+    <file src="..\artifacts\bin\GeekLearning.Storage\Release\net451\GeekLearning.Storage.xml" target="lib\net451\GeekLearning.Storage.xml" />
+  </files>
+</package>
