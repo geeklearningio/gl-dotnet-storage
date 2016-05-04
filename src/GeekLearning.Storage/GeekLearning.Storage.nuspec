@@ -3,9 +3,9 @@
   <metadata>
     <id>GeekLearning.Storage</id>
     <version>$version$</version>
-    <authors>$author$</authors>
-    <owners>$author$</owners>
-    <description>$description$</description>
+    <authors>Geek Learning</authors>
+    <owners>Geek Learning</owners>
+    <description>Geek Learning Storage abstraction</description>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
   </metadata>
   <files>

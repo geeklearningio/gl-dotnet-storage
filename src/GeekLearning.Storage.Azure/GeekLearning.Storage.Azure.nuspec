@@ -3,9 +3,9 @@
   <metadata>
     <id>GeekLearning.Storage.Azure</id>
     <version>$version$</version>
-    <authors>$author$</authors>
-    <owners>$author$</owners>
-    <description>$description$</description>
+    <authors>Geek Learning</authors>
+    <owners>Geek Learning</owners>
+    <description>Geek Learning Azure Storage Provider</description>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <dependencies>
       <dependency id="GeekLearning.Storage" version="$version$" />
