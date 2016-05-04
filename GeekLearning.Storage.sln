@@ -16,7 +16,7 @@ Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "GeekLearning.Storage.Azure"
 EndProject
 Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "GeekLearning.Storage.FileSystem", "src\GeekLearning.Storage.FileSystem\GeekLearning.Storage.FileSystem.xproj", "{4A12B042-76B3-471B-9235-F653E1ABE3C0}"
 EndProject
-Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "GeekLearning.Storage.BasicSample", "samples\GeekLearning.Storage.BasicSample\GeekLearning.Storage.BasicSample.xproj", "{3AB29F6F-D32B-49D1-8CE1-5B61A12B78CC}"
+Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "GeekLearning.Storage.BasicSample", "src\GeekLearning.Storage.BasicSample\GeekLearning.Storage.BasicSample.xproj", "{3AB29F6F-D32B-49D1-8CE1-5B61A12B78CC}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
