@@ -11,8 +11,6 @@ Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "GeekLearning.Storage.FileSy
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{FFFDF8A8-A519-481E-8A4B-6AE80D3E950D}"
 	ProjectSection(SolutionItems) = preProject
-		src\GeekLearning.Storage\global.json = src\GeekLearning.Storage\global.json
-		src\GeekLearning.FileSystem\global.json = src\GeekLearning.FileSystem\global.json
 		global.json = global.json
 	EndProjectSection
 EndProject
