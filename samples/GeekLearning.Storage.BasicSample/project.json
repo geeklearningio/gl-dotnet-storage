@@ -5,8 +5,8 @@
   },
 
   "dependencies": {
-    "GeekLearning.Azure": "1.0.0-*",
-    "GeekLearning.FileSystem": "1.0.0-*",
+    "GeekLearning.Storage.Azure": "*",
+    "GeekLearning.Storage.FileSystem": "*",
     "GeekLearning.Storage": "1.0.0-*",
     "Microsoft.AspNet.IISPlatformHandler": "1.0.0-rc1-final",
     "Microsoft.AspNet.Mvc": "6.0.0-rc1-final",
