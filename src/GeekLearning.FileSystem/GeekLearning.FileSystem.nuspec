@@ -1,0 +1,19 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd">
+  <metadata>
+    <id>GeekLearning.Storage.FileSystem</id>
+    <version>1.0.0</version>
+    <authors>autex</authors>
+    <owners>autex</owners>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>GeekLearning.Storage.FileSystem Class Library</description>
+  </metadata>
+  <files>
+    <file src="..\artifacts\bin\GeekLearning.Storage.FileSystem\Release\dnxcore50\GeekLearning.Storage.FileSystem.dll" target="lib\dnxcore50\GeekLearning.Storage.FileSystem.dll" />
+    <file src="..\artifacts\bin\GeekLearning.Storage.FileSystem\Release\dnxcore50\GeekLearning.Storage.FileSystem.dll" target="lib\dnxcore50\GeekLearning.Storage.FileSystem.dll" />
+    <file src="..\artifacts\bin\GeekLearning.Storage.FileSystem\Release\dotnet5.4\GeekLearning.Storage.FileSystem.dll" target="lib\dotnet5.4\GeekLearning.Storage.FileSystem.dll" />
+    <file src="..\artifacts\bin\GeekLearning.Storage.FileSystem\Release\dotnet5.4\GeekLearning.Storage.FileSystem.xml" target="lib\dotnet5.4\GeekLearning.Storage.FileSystem.xml" />
+    <file src="..\artifacts\bin\GeekLearning.Storage.FileSystem\Release\net451\GeekLearning.Storage.FileSystem.dll" target="lib\net451\GeekLearning.Storage.FileSystem.dll" />
+    <file src="..\artifacts\bin\GeekLearning.Storage.FileSystem\Release\net451\GeekLearning.Storage.FileSystem.xml" target="lib\net451\GeekLearning.Storage.FileSystem.xml" />
+  </files>
+</package>
