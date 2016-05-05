@@ -6,7 +6,7 @@
   "projectUrl": "",
   "licenseUrl": "",
   "dependencies": {
-    "GeekLearning.Storage": "0.0.1-*",
+    "GeekLearning.Storage": "",
     "Microsoft.Extensions.DependencyInjection.Abstractions": "1.0.0-rc1-final",
     "Microsoft.Extensions.OptionsModel": "1.0.0-rc1-final",
     "WindowsAzure.Storage": "6.2.2-preview"
