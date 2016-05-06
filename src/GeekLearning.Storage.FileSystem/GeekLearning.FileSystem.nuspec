@@ -2,11 +2,14 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd">
   <metadata>
     <id>GeekLearning.Storage.FileSystem</id>
-    <version>1.0.0</version>
-    <authors>autex</authors>
-    <owners>autex</owners>
+    <version>$version$</version>
+    <authors>Geek Learning</authors>
+    <owners>Geek Learning</owners>
+    <description>Geek Learning FileSystem Storage Provider</description>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
-    <description>GeekLearning.Storage.FileSystem Class Library</description>
+    <dependencies>
+      <dependency id="GeekLearning.Storage" version="$version$" />
+    </dependencies>
   </metadata>
   <files>
     <file src="..\artifacts\bin\GeekLearning.Storage.FileSystem\Release\dnxcore50\GeekLearning.Storage.FileSystem.dll" target="lib\dnxcore50\GeekLearning.Storage.FileSystem.dll" />

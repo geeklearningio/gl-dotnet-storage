@@ -2,11 +2,11 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd">
   <metadata>
     <id>GeekLearning.Storage</id>
-    <version>1.0.0</version>
-    <authors>autex</authors>
-    <owners>autex</owners>
+    <version>$version$</version>
+    <authors>Geek Learning</authors>
+    <owners>Geek Learning</owners>
+    <description>Geek Learning Storage abstraction</description>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
-    <description>GeekLearning.Storage Class Library</description>
   </metadata>
   <files>
     <file src="..\artifacts\bin\GeekLearning.Storage\Release\dnxcore50\GeekLearning.Storage.dll" target="lib\dnxcore50\GeekLearning.Storage.dll" />

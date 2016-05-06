@@ -1,13 +1,13 @@
 {
-  "version": "1.0.0-*",
+  "version": "0.0.1-*",
   "compilationOptions": {
     "emitEntryPoint": true
   },
 
   "dependencies": {
-    "GeekLearning.Azure": "1.0.0-*",
-    "GeekLearning.FileSystem": "1.0.0-*",
-    "GeekLearning.Storage": "1.0.0-*",
+    "GeekLearning.Storage": "",
+    "GeekLearning.Storage.Azure": "",
+    "GeekLearning.Storage.FileSystem": "",
     "Microsoft.AspNet.IISPlatformHandler": "1.0.0-rc1-final",
     "Microsoft.AspNet.Mvc": "6.0.0-rc1-final",
     "Microsoft.AspNet.Server.Kestrel": "1.0.0-rc1-final",

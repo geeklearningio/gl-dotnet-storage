@@ -1,15 +1,15 @@
-﻿using System.Reflection;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 // General Information about an assembly is controlled through the following
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("GeekLearning.Storage.Azure")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyTitle("GeekLearning.Storage.FileSystem")]
+[assembly: AssemblyDescription("Geek Learning FileSystem Storage Provider")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("GeekLearning.Storage.Azure")]
+[assembly: AssemblyCompany("Geek Learning")]
+[assembly: AssemblyProduct("GeekLearning.Storage.FileSystem")]
 [assembly: AssemblyCopyright("Copyright ©  2016")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
@@ -20,4 +20,8 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("fd8bb8f9-9af5-4c12-b962-9e08c30b01e2")]
+[assembly: Guid("4a12b042-76b3-471b-9235-f653e1abe3c0")]
+
+[assembly: AssemblyVersion("0.1.0.0")]
+[assembly: AssemblyInformationalVersion("0.1.0+3.Branch.master.Sha.c1972a5901589d4f8d5670ad90b383609ee69408")]
+[assembly: AssemblyFileVersion("0.1.0.0")]
