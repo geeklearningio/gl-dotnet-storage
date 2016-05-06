@@ -1,3 +1,3 @@
 # gl-dotnet-storage
 
-Coming Soon!
+Coming Soon and it will be awesome!
