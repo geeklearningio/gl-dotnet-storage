@@ -37,7 +37,7 @@ namespace GeekLearning.Storage.FileSystem
             {
                 return Task.FromResult(new string[0]); 
             }
-            return Task.FromResult(Directory.GetFiles(path).Select(x => x.Replace(this.absolutePath, "")).ToArray());
+            return Task.FromResult(Directory.GetFiles(directoryPath).Select(x => x.Replace(this.absolutePath, "")).ToArray());
         }
 
         public Task<Stream> Read(string path)
