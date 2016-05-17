@@ -8,6 +8,9 @@ namespace GeekLearning.Storage
 {
     public interface IStore
     {
+
+        Task<string[]> List(string path);
+
         Task<Stream> Read(string path);
 
         Task<byte[]> ReadAllBytes(string path);

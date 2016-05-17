@@ -82,5 +82,10 @@ namespace GeekLearning.Storage.Azure
             await blockBlob.SetPropertiesAsync();
             return blockBlob.Uri.ToString();
         }
+
+        public Task<string[]> List(string path)
+        {
+            return Task.FromResult(this.container.Value.ListBlobs(path).Select(blob => blob.Uri.ToString()).ToArray());
+        }
     }
 }
