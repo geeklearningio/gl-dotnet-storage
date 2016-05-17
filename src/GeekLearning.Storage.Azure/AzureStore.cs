@@ -83,9 +83,18 @@ namespace GeekLearning.Storage.Azure
             return blockBlob.Uri.ToString();
         }
 
-        public Task<string[]> List(string path)
+        public async Task<string[]> List(string path)
         {
-            return Task.FromResult(this.container.Value.ListBlobs(path).Select(blob => blob.Uri.ToString()).ToArray());
+            BlobContinuationToken continuationToken = null;
+            List<IListBlobItem> results = new List<IListBlobItem>();
+            do
+            {
+                var response = await this.container.Value.ListBlobsSegmentedAsync(path,continuationToken);
+                continuationToken = response.ContinuationToken;
+                results.AddRange(response.Results);
+            }
+            while (continuationToken != null);
+            return results.Select(blob => blob.Uri.ToString()).ToArray();
         }
     }
 }
