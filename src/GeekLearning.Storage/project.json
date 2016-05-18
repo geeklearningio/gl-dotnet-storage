@@ -2,37 +2,20 @@
   "version": "0.0.1-*",
   "description": "GeekLearning.Storage Class Library",
   "authors": [ "autex" ],
-  "tags": [ "" ],
-  "projectUrl": "",
-  "licenseUrl": "",
+  "packOptions": {
+    "tags": [ ],
+    "projectUrl": "",
+    "licenseUrl": ""
+  },
   "frameworks": {
-    "net451": {
-      "dependencies": {
-        "System.IO": "4.0.11-beta-23516"
-      }
-    },
-    "dnxcore50": {
-      "dependencies": {
-        "Microsoft.CSharp": "4.0.1-beta-23516",
-        "System.Collections": "4.0.11-beta-23516",
-        "System.IO": "4.0.11-beta-23516",
-        "System.Linq": "4.0.1-beta-23516",
-        "System.Runtime": "4.0.21-beta-23516",
-        "System.Threading": "4.0.11-beta-23516"
-      }
-    },
-    "dotnet5.4": {
-      "dependencies": {
-        "Microsoft.CSharp": "4.0.1-beta-23516",
-        "System.Collections": "4.0.11-beta-23516",
-        "System.Linq": "4.0.1-beta-23516",
-        "System.Runtime": "4.0.21-beta-23516",
-        "System.Threading": "4.0.11-beta-23516"
-      }
+    "net451": { },
+    "netstandard1.5": {
+      "imports": [ "dotnet", "dnxcore50", "portable-net45+win8" ]
     }
   },
   "dependencies": {
-    "Microsoft.Extensions.DependencyInjection.Abstractions": "1.0.0-rc1-final",
-    "Microsoft.Extensions.OptionsModel": "1.0.0-rc1-final"
+    "Microsoft.Extensions.DependencyInjection.Abstractions": "1.0.0-rc2-final",
+    "Microsoft.Extensions.Options": "1.0.0-rc2-final",
+    "NETStandard.Library": "1.5.0-rc2-24027"
   }
 }
