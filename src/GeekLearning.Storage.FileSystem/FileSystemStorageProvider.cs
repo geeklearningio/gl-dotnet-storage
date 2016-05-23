@@ -1,19 +1,18 @@
 ﻿using GeekLearning.Storage;
-using Microsoft.Extensions.OptionsModel;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.Extensions.PlatformAbstractions;
+using Microsoft.AspNetCore.Hosting;
 
 namespace GeekLearning.Storage.FileSystem
 {
     public class FileSystemStorageProvider : IStorageProvider
     {
-        private IApplicationEnvironment appEnv;
+        private IHostingEnvironment appEnv;
 
-        public FileSystemStorageProvider(IApplicationEnvironment appEnv)
+        public FileSystemStorageProvider(IHostingEnvironment appEnv)
         {
             this.appEnv = appEnv;
         }
@@ -28,7 +27,7 @@ namespace GeekLearning.Storage.FileSystem
 
         public IStore BuildStore(StorageOptions.StorageStore storeOptions)
         {
-            return new FileSystemStore(storeOptions.Parameters["Path"], this.appEnv.ApplicationBasePath);
+            return new FileSystemStore(storeOptions.Parameters["Path"], this.appEnv.ContentRootPath);
         }
     }
 }
