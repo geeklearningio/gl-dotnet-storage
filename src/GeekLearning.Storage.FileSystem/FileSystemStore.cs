@@ -58,7 +58,7 @@ namespace GeekLearning.Storage.FileSystem
         public async Task<string> Save(Stream data, string path, string mimeType)
         {
             EnsurePathExists(path);
-            using (var file = File.Open(path, FileMode.Create, FileAccess.Write))
+            using (var file = File.Open(Path.Combine(this.absolutePath, path), FileMode.Create, FileAccess.Write))
             {
                 await data.CopyToAsync(file);
             }
