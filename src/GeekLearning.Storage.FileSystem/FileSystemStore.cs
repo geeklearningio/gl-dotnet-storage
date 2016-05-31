@@ -55,10 +55,14 @@ namespace GeekLearning.Storage.FileSystem
             return Task.FromResult(File.ReadAllText(Path.Combine(this.absolutePath, path)));
         }
 
-        public Task<string> Save(Stream data, string path, string mimeType)
+        public async Task<string> Save(Stream data, string path, string mimeType)
         {
             EnsurePathExists(path);
-            return Task.FromResult(File.ReadAllText(Path.Combine(this.absolutePath, path)));
+            using(var file = File.Open(path, FileMode.Create, FileAccess.Write))
+            {
+                await data.CopyToAsync(file);
+            }
+            return path;
         }
 
         public Task<string> Save(byte[] data, string path, string mimeType)
