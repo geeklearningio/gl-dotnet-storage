@@ -12,6 +12,7 @@ namespace GeekLearning.Storage.Azure
     {
         private string connectionString;
         private Lazy<CloudBlobContainer> container;
+        private Lazy<CloudBlobClient> client;
         private string containerName;
 
 
@@ -30,7 +31,8 @@ namespace GeekLearning.Storage.Azure
             this.connectionString = connectionString;
             this.containerName = containerName;
 
-            container = new Lazy<CloudBlobContainer>(() => CloudStorageAccount.Parse(this.connectionString).CreateCloudBlobClient().GetContainerReference(this.containerName));
+            client = new Lazy<CloudBlobClient>(() => CloudStorageAccount.Parse(this.connectionString).CreateCloudBlobClient());
+            container = new Lazy<CloudBlobContainer>(() => this.client.Value.GetContainerReference(this.containerName));
         }
 
         public Task<string> GetExpirableUri(string uri)
@@ -41,8 +43,8 @@ namespace GeekLearning.Storage.Azure
         public async Task<MemoryStream> ReadInMemory(string path)
         {
             var memoryStream = new MemoryStream();
-            var blockBlob = this.container.Value.GetBlockBlobReference(path);
-            await blockBlob.DownloadToStreamAsync(memoryStream);
+            var blockBlob = await this.client.Value.GetBlobReferenceFromServerAsync(new Uri(path, UriKind.Absolute));
+            await blockBlob.DownloadRangeToStreamAsync(memoryStream, null, null);
             return memoryStream;
         }
 
@@ -59,8 +61,11 @@ namespace GeekLearning.Storage.Azure
 
         public async Task<string> ReadAllText(string path)
         {
-            var blockBlob = this.container.Value.GetBlockBlobReference(path);
-            return await blockBlob.DownloadTextAsync();
+            var blockBlob = await this.client.Value.GetBlobReferenceFromServerAsync(new Uri(path, UriKind.Absolute));
+            using (var reader = new StreamReader(await blockBlob.OpenReadAsync(AccessCondition.GenerateEmptyCondition(), new BlobRequestOptions(), new OperationContext())))
+            {
+                return await reader.ReadToEndAsync();
+            };
         }
 
         public async Task<string> Save(Stream data, string path, string mimeType)
@@ -89,7 +94,7 @@ namespace GeekLearning.Storage.Azure
             List<IListBlobItem> results = new List<IListBlobItem>();
             do
             {
-                var response = await this.container.Value.ListBlobsSegmentedAsync(path,continuationToken);
+                var response = await this.container.Value.ListBlobsSegmentedAsync(path, continuationToken);
                 continuationToken = response.ContinuationToken;
                 results.AddRange(response.Results);
             }
