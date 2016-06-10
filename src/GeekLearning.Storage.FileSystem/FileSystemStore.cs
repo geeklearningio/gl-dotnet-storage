@@ -25,6 +25,12 @@ namespace GeekLearning.Storage.FileSystem
             }
         }
 
+        public Task Delete(string path)
+        {
+            File.Delete(Path.Combine(this.absolutePath, path));
+            return Task.FromResult(true);
+        }
+
         public Task<string> GetExpirableUri(string uri)
         {
             return Task.FromResult(uri);

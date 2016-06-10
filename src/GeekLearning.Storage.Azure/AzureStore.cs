@@ -101,5 +101,11 @@ namespace GeekLearning.Storage.Azure
             while (continuationToken != null);
             return results.Select(blob => blob.Uri.ToString()).ToArray();
         }
+
+        public async Task Delete(string path)
+        {
+            var blockBlob = await this.client.Value.GetBlobReferenceFromServerAsync(new Uri(path, UriKind.Absolute));
+            await blockBlob.DeleteAsync();
+        }
     }
 }
