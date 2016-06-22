@@ -1,0 +1,24 @@
+﻿{
+  "version": "1.0.0-*",
+  "buildOptions": {
+    "emitEntryPoint": true
+  },
+
+  "dependencies": {
+    "GeekLearning.Storage": "*",
+    "GeekLearning.Storage.Azure": "*",
+    "GeekLearning.Storage.FileSystem": "*"
+  },
+
+  "frameworks": {
+    "netcoreapp1.0": {
+      "imports": [ "dotnet", "dnxcore50", "portable-net45+win8" ],
+      "dependencies": {
+        "Microsoft.NETCore.App": {
+          "type": "platform",
+          "version": "1.0.0-rc2-3002702"
+        }
+      }
+    }
+  }
+}
