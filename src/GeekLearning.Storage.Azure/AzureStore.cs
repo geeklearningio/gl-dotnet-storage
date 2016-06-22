@@ -43,10 +43,23 @@ namespace GeekLearning.Storage.Azure
         public async Task<MemoryStream> ReadInMemory(string path)
         {
             var memoryStream = new MemoryStream();
-            var blockBlob = await this.client.Value.GetBlobReferenceFromServerAsync(new Uri(path, UriKind.Absolute));
+            var blockBlob = await GetBlobReference(path);
             await blockBlob.DownloadRangeToStreamAsync(memoryStream, null, null);
             return memoryStream;
         }
+
+        private Task<ICloudBlob> GetBlobReference(string path)
+        {
+            var uri = new Uri(path, UriKind.RelativeOrAbsolute);
+            if (uri.IsAbsoluteUri)
+            {
+                return this.client.Value.GetBlobReferenceFromServerAsync(uri);
+            } else
+            {
+                return this.container.Value.GetBlobReferenceFromServerAsync(path);
+            }
+        }
+
 
         public async Task<Stream> Read(string path)
         {
@@ -61,7 +74,7 @@ namespace GeekLearning.Storage.Azure
 
         public async Task<string> ReadAllText(string path)
         {
-            var blockBlob = await this.client.Value.GetBlobReferenceFromServerAsync(new Uri(path, UriKind.Absolute));
+            var blockBlob = await GetBlobReference(path);
             using (var reader = new StreamReader(await blockBlob.OpenReadAsync(AccessCondition.GenerateEmptyCondition(), new BlobRequestOptions(), new OperationContext())))
             {
                 return await reader.ReadToEndAsync();
@@ -104,7 +117,7 @@ namespace GeekLearning.Storage.Azure
 
         public async Task Delete(string path)
         {
-            var blockBlob = await this.client.Value.GetBlobReferenceFromServerAsync(new Uri(path, UriKind.Absolute));
+            var blockBlob = await GetBlobReference(path);
             await blockBlob.DeleteAsync();
         }
     }
