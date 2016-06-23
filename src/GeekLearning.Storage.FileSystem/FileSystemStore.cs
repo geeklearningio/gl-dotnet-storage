@@ -1,21 +1,22 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
-
-namespace GeekLearning.Storage.FileSystem
+﻿namespace GeekLearning.Storage.FileSystem
 {
+    using System;
+    using System.IO;
+    using System.Linq;
+    using System.Threading.Tasks;
+
     public class FileSystemStore : IStore
     {
         private string absolutePath;
+
         public FileSystemStore(string path, string appPath)
         {
             if (string.IsNullOrEmpty(path))
             {
                 throw new ArgumentNullException("path");
             }
-            if (System.IO.Path.IsPathRooted(path))
+
+            if (Path.IsPathRooted(path))
             {
                 this.absolutePath = path;
             }
@@ -41,9 +42,10 @@ namespace GeekLearning.Storage.FileSystem
             var directoryPath = Path.GetDirectoryName(Path.Combine(this.absolutePath, path));
             if (!Directory.Exists(directoryPath))
             {
-                return Task.FromResult(new string[0]); 
+                return Task.FromResult(new string[0]);
             }
-            return Task.FromResult(Directory.GetFiles(directoryPath).Select(x => x.Replace(this.absolutePath, "")).ToArray());
+
+            return Task.FromResult(Directory.GetFiles(directoryPath).Select(x => x.Replace(this.absolutePath, "").Trim('/', '\\')).ToArray());
         }
 
         public Task<Stream> Read(string path)
@@ -68,6 +70,7 @@ namespace GeekLearning.Storage.FileSystem
             {
                 await data.CopyToAsync(file);
             }
+
             return path;
         }
 

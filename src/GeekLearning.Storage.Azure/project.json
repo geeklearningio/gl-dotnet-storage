@@ -1,7 +1,7 @@
 {
   "version": "0.0.1-*",
   "description": "GeekLearning.Storage.Azure Class Library",
-  "authors": [ "autex" ],
+  "authors": [ "Geek Learning", "Cyprien Autexier", "Adrien Siffermann" ],
   "packOptions": {
     "tags": [ ],
     "projectUrl": "",
