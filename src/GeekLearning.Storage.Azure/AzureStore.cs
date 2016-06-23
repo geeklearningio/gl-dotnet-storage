@@ -1,20 +1,19 @@
-﻿using Microsoft.WindowsAzure.Storage;
-using Microsoft.WindowsAzure.Storage.Blob;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
-
-namespace GeekLearning.Storage.Azure
+﻿namespace GeekLearning.Storage.Azure
 {
+    using Microsoft.WindowsAzure.Storage;
+    using Microsoft.WindowsAzure.Storage.Blob;
+    using System;
+    using System.Collections.Generic;
+    using System.IO;
+    using System.Linq;
+    using System.Threading.Tasks;
+
     public class AzureStore : IStore
     {
         private string connectionString;
         private Lazy<CloudBlobContainer> container;
         private Lazy<CloudBlobClient> client;
         private string containerName;
-
 
         public AzureStore(string connectionString, string containerName)
         {
@@ -54,12 +53,12 @@ namespace GeekLearning.Storage.Azure
             if (uri.IsAbsoluteUri)
             {
                 return this.client.Value.GetBlobReferenceFromServerAsync(uri);
-            } else
+            }
+            else
             {
                 return this.container.Value.GetBlobReferenceFromServerAsync(path);
             }
         }
-
 
         public async Task<Stream> Read(string path)
         {
@@ -78,7 +77,7 @@ namespace GeekLearning.Storage.Azure
             using (var reader = new StreamReader(await blockBlob.OpenReadAsync(AccessCondition.GenerateEmptyCondition(), new BlobRequestOptions(), new OperationContext())))
             {
                 return await reader.ReadToEndAsync();
-            };
+            }
         }
 
         public async Task<string> Save(Stream data, string path, string mimeType)
@@ -103,6 +102,11 @@ namespace GeekLearning.Storage.Azure
 
         public async Task<string[]> List(string path)
         {
+            if (path.EndsWith("*"))
+            {
+                path = path.TrimEnd('*');
+            }
+
             BlobContinuationToken continuationToken = null;
             List<IListBlobItem> results = new List<IListBlobItem>();
             do
@@ -112,6 +116,7 @@ namespace GeekLearning.Storage.Azure
                 results.AddRange(response.Results);
             }
             while (continuationToken != null);
+
             return results.Select(blob => blob.Uri.ToString()).ToArray();
         }
 
