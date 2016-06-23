@@ -1,5 +1,4 @@
 ﻿using GeekLearning.Storage;
-using Microsoft.Extensions.OptionsModel;
 using Microsoft.WindowsAzure.Storage;
 using System;
 using System.Collections.Generic;

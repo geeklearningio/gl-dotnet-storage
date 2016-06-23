@@ -2,13 +2,14 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNet.Mvc;
+using Microsoft.AspNetCore.Mvc;
 
 namespace GeekLearning.Storage.BasicSample.Controllers
 {
     [Route("api/[controller]")]
     public class ValuesController : Controller
     {
+        // GET api/values
         private TemplatesStore templates;
 
         public ValuesController(TemplatesStore templates)

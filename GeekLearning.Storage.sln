@@ -5,18 +5,17 @@ VisualStudioVersion = 14.0.25123.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "GeekLearning.Storage", "src\GeekLearning.Storage\GeekLearning.Storage.xproj", "{1F419C53-73C6-4460-B284-6A49AE41C596}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{FFFDF8A8-A519-481E-8A4B-6AE80D3E950D}"
-	ProjectSection(SolutionItems) = preProject
-		global.json = global.json
-	EndProjectSection
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Samples", "Samples", "{FBAC4C17-D755-49A9-959D-18FD6B95B543}"
 EndProject
 Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "GeekLearning.Storage.Azure", "src\GeekLearning.Storage.Azure\GeekLearning.Storage.Azure.xproj", "{FD8BB8F9-9AF5-4C12-B962-9E08C30B01E2}"
 EndProject
 Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "GeekLearning.Storage.FileSystem", "src\GeekLearning.Storage.FileSystem\GeekLearning.Storage.FileSystem.xproj", "{4A12B042-76B3-471B-9235-F653E1ABE3C0}"
 EndProject
-Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "GeekLearning.Storage.BasicSample", "src\GeekLearning.Storage.BasicSample\GeekLearning.Storage.BasicSample.xproj", "{3AB29F6F-D32B-49D1-8CE1-5B61A12B78CC}"
+Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "GeekLearning.Storage.BasicSample", "samples\GeekLearning.Storage.BasicSample\GeekLearning.Storage.BasicSample.xproj", "{63416AEA-DA51-4D62-B566-DB7D9BC800DC}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{2DAF5EF9-8F8E-4C51-BE2D-8D63CA143360}"
+EndProject
+Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "GeekLearning.Integration.Test", "tests\GeekLearning.Integration.Test\GeekLearning.Integration.Test.xproj", "{590B21B0-2AFA-4329-82AD-EF180C50EB5C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -36,15 +35,20 @@ Global
 		{4A12B042-76B3-471B-9235-F653E1ABE3C0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4A12B042-76B3-471B-9235-F653E1ABE3C0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4A12B042-76B3-471B-9235-F653E1ABE3C0}.Release|Any CPU.Build.0 = Release|Any CPU
-		{3AB29F6F-D32B-49D1-8CE1-5B61A12B78CC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{3AB29F6F-D32B-49D1-8CE1-5B61A12B78CC}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{3AB29F6F-D32B-49D1-8CE1-5B61A12B78CC}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{3AB29F6F-D32B-49D1-8CE1-5B61A12B78CC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{63416AEA-DA51-4D62-B566-DB7D9BC800DC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{63416AEA-DA51-4D62-B566-DB7D9BC800DC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{63416AEA-DA51-4D62-B566-DB7D9BC800DC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{63416AEA-DA51-4D62-B566-DB7D9BC800DC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{590B21B0-2AFA-4329-82AD-EF180C50EB5C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{590B21B0-2AFA-4329-82AD-EF180C50EB5C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{590B21B0-2AFA-4329-82AD-EF180C50EB5C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{590B21B0-2AFA-4329-82AD-EF180C50EB5C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
-		{3AB29F6F-D32B-49D1-8CE1-5B61A12B78CC} = {FBAC4C17-D755-49A9-959D-18FD6B95B543}
+		{63416AEA-DA51-4D62-B566-DB7D9BC800DC} = {FBAC4C17-D755-49A9-959D-18FD6B95B543}
+		{590B21B0-2AFA-4329-82AD-EF180C50EB5C} = {2DAF5EF9-8F8E-4C51-BE2D-8D63CA143360}
 	EndGlobalSection
 EndGlobal

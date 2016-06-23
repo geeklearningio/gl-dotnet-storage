@@ -1,21 +1,22 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
-
-namespace GeekLearning.Storage.FileSystem
+﻿namespace GeekLearning.Storage.FileSystem
 {
+    using System;
+    using System.IO;
+    using System.Linq;
+    using System.Threading.Tasks;
+
     public class FileSystemStore : IStore
     {
         private string absolutePath;
+
         public FileSystemStore(string path, string appPath)
         {
             if (string.IsNullOrEmpty(path))
             {
                 throw new ArgumentNullException("path");
             }
-            if (System.IO.Path.IsPathRooted(path))
+
+            if (Path.IsPathRooted(path))
             {
                 this.absolutePath = path;
             }
@@ -25,9 +26,26 @@ namespace GeekLearning.Storage.FileSystem
             }
         }
 
+        public Task Delete(string path)
+        {
+            File.Delete(Path.Combine(this.absolutePath, path));
+            return Task.FromResult(true);
+        }
+
         public Task<string> GetExpirableUri(string uri)
         {
             return Task.FromResult(uri);
+        }
+
+        public Task<string[]> List(string path)
+        {
+            var directoryPath = Path.GetDirectoryName(Path.Combine(this.absolutePath, path));
+            if (!Directory.Exists(directoryPath))
+            {
+                return Task.FromResult(new string[0]);
+            }
+
+            return Task.FromResult(Directory.GetFiles(directoryPath).Select(x => x.Replace(this.absolutePath, "").Trim('/', '\\')).ToArray());
         }
 
         public Task<Stream> Read(string path)
@@ -45,15 +63,31 @@ namespace GeekLearning.Storage.FileSystem
             return Task.FromResult(File.ReadAllText(Path.Combine(this.absolutePath, path)));
         }
 
-        public Task<string> Save(Stream data, string path, string mimeType)
+        public async Task<string> Save(Stream data, string path, string mimeType)
         {
-            return Task.FromResult(File.ReadAllText(Path.Combine(this.absolutePath, path)));
+            EnsurePathExists(path);
+            using (var file = File.Open(Path.Combine(this.absolutePath, path), FileMode.Create, FileAccess.Write))
+            {
+                await data.CopyToAsync(file);
+            }
+
+            return path;
         }
 
         public Task<string> Save(byte[] data, string path, string mimeType)
         {
+            EnsurePathExists(path);
             File.WriteAllBytes(Path.Combine(this.absolutePath, path), data);
             return Task.FromResult(path);
+        }
+
+        private void EnsurePathExists(string path)
+        {
+            var directoryPath = Path.GetDirectoryName(Path.Combine(this.absolutePath, path));
+            if (!Directory.Exists(directoryPath))
+            {
+                Directory.CreateDirectory(directoryPath);
+            }
         }
     }
 }

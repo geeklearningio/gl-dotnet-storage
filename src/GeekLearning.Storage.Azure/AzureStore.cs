@@ -1,19 +1,19 @@
-﻿using Microsoft.WindowsAzure.Storage;
-using Microsoft.WindowsAzure.Storage.Blob;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
-
-namespace GeekLearning.Storage.Azure
+﻿namespace GeekLearning.Storage.Azure
 {
+    using Microsoft.WindowsAzure.Storage;
+    using Microsoft.WindowsAzure.Storage.Blob;
+    using System;
+    using System.Collections.Generic;
+    using System.IO;
+    using System.Linq;
+    using System.Threading.Tasks;
+
     public class AzureStore : IStore
     {
         private string connectionString;
         private Lazy<CloudBlobContainer> container;
+        private Lazy<CloudBlobClient> client;
         private string containerName;
-
 
         public AzureStore(string connectionString, string containerName)
         {
@@ -30,7 +30,8 @@ namespace GeekLearning.Storage.Azure
             this.connectionString = connectionString;
             this.containerName = containerName;
 
-            container = new Lazy<CloudBlobContainer>(() => CloudStorageAccount.Parse(this.connectionString).CreateCloudBlobClient().GetContainerReference(this.containerName));
+            client = new Lazy<CloudBlobClient>(() => CloudStorageAccount.Parse(this.connectionString).CreateCloudBlobClient());
+            container = new Lazy<CloudBlobContainer>(() => this.client.Value.GetContainerReference(this.containerName));
         }
 
         public Task<string> GetExpirableUri(string uri)
@@ -41,9 +42,22 @@ namespace GeekLearning.Storage.Azure
         public async Task<MemoryStream> ReadInMemory(string path)
         {
             var memoryStream = new MemoryStream();
-            var blockBlob = this.container.Value.GetBlockBlobReference(path);
-            await blockBlob.DownloadToStreamAsync(memoryStream);
+            var blockBlob = await GetBlobReference(path);
+            await blockBlob.DownloadRangeToStreamAsync(memoryStream, null, null);
             return memoryStream;
+        }
+
+        private Task<ICloudBlob> GetBlobReference(string path)
+        {
+            var uri = new Uri(path, UriKind.RelativeOrAbsolute);
+            if (uri.IsAbsoluteUri)
+            {
+                return this.client.Value.GetBlobReferenceFromServerAsync(uri);
+            }
+            else
+            {
+                return this.container.Value.GetBlobReferenceFromServerAsync(path);
+            }
         }
 
         public async Task<Stream> Read(string path)
@@ -59,8 +73,11 @@ namespace GeekLearning.Storage.Azure
 
         public async Task<string> ReadAllText(string path)
         {
-            var blockBlob = this.container.Value.GetBlockBlobReference(path);
-            return await blockBlob.DownloadTextAsync();
+            var blockBlob = await GetBlobReference(path);
+            using (var reader = new StreamReader(await blockBlob.OpenReadAsync(AccessCondition.GenerateEmptyCondition(), new BlobRequestOptions(), new OperationContext())))
+            {
+                return await reader.ReadToEndAsync();
+            }
         }
 
         public async Task<string> Save(Stream data, string path, string mimeType)
@@ -81,6 +98,32 @@ namespace GeekLearning.Storage.Azure
             blockBlob.Properties.CacheControl = "max-age=300, must-revalidate";
             await blockBlob.SetPropertiesAsync();
             return blockBlob.Uri.ToString();
+        }
+
+        public async Task<string[]> List(string path)
+        {
+            if (path.EndsWith("*"))
+            {
+                path = path.TrimEnd('*');
+            }
+
+            BlobContinuationToken continuationToken = null;
+            List<IListBlobItem> results = new List<IListBlobItem>();
+            do
+            {
+                var response = await this.container.Value.ListBlobsSegmentedAsync(path, continuationToken);
+                continuationToken = response.ContinuationToken;
+                results.AddRange(response.Results);
+            }
+            while (continuationToken != null);
+
+            return results.Select(blob => blob.Uri.ToString()).ToArray();
+        }
+
+        public async Task Delete(string path)
+        {
+            var blockBlob = await GetBlobReference(path);
+            await blockBlob.DeleteAsync();
         }
     }
 }

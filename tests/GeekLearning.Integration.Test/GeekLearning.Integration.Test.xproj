@@ -7,8 +7,8 @@
 
   <Import Project="$(VSToolsPath)\DotNet\Microsoft.DotNet.Props" Condition="'$(VSToolsPath)' != ''" />
   <PropertyGroup Label="Globals">
-    <ProjectGuid>fd8bb8f9-9af5-4c12-b962-9e08c30b01e2</ProjectGuid>
-    <RootNamespace>GeekLearning.Storage.Azure</RootNamespace>
+    <ProjectGuid>590b21b0-2afa-4329-82ad-ef180c50eb5c</ProjectGuid>
+    <RootNamespace>GeekLearning.Integration.Test</RootNamespace>
     <BaseIntermediateOutputPath Condition="'$(BaseIntermediateOutputPath)'=='' ">.\obj</BaseIntermediateOutputPath>
     <OutputPath Condition="'$(OutputPath)'=='' ">.\bin\</OutputPath>
     <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
