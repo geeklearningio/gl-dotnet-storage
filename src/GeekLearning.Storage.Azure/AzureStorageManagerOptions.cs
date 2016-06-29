@@ -1,13 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-
-namespace GeekLearning.Storage.Azure
+﻿namespace GeekLearning.Storage.Azure
 {
+    using System.Collections.Generic;
+
     public class AzureStorageManagerOptions
     {
-
         public Dictionary<string,SubStore> SubStores { get; set; }
 
         public class SubStore

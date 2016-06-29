@@ -1,14 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
-
-namespace GeekLearning.Storage
+﻿namespace GeekLearning.Storage
 {
+    using System.IO;
+    using System.Threading.Tasks;
+
     public interface IStore
     {
-
         Task<string[]> List(string path);
 
         Task Delete(string path);
