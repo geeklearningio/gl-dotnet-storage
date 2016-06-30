@@ -1,15 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-
-namespace GeekLearning.Storage
+﻿namespace GeekLearning.Storage
 {
+    using System.Collections.Generic;
+
     public class StorageOptions
     {
         public StorageOptions()
         {
-
         }
 
         public Dictionary<string, StorageStore> Stores { get; set; }

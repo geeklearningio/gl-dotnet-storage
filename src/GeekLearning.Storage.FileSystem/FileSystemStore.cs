@@ -45,7 +45,10 @@
                 return Task.FromResult(new string[0]);
             }
 
-            return Task.FromResult(Directory.GetFiles(directoryPath).Select(x => x.Replace(this.absolutePath, "").Trim('/', '\\')).ToArray());
+            return Task.FromResult(Directory.GetFiles(directoryPath, path)
+                .Select(x => x.Replace(this.absolutePath, "")
+                .Trim('/', '\\'))
+                .ToArray());
         }
 
         public Task<Stream> Read(string path)

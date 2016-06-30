@@ -1,13 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
-using GeekLearning.Storage;
-
-namespace Microsoft.Extensions.DependencyInjection
+﻿namespace GeekLearning.Storage
 {
+    using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Extensions.DependencyInjection.Extensions;
+
     public static class GeekLearningStorageExtensions
     {
         public static IServiceCollection AddStorage(this IServiceCollection services)

@@ -1,13 +1,8 @@
-﻿using GeekLearning.Storage;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Hosting;
-
-namespace GeekLearning.Storage.FileSystem
+﻿namespace GeekLearning.Storage.FileSystem
 {
+    using Storage;
+    using Microsoft.AspNetCore.Hosting;
+
     public class FileSystemStorageProvider : IStorageProvider
     {
         private IHostingEnvironment appEnv;

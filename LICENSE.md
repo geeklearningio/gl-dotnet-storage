@@ -1,7 +1,7 @@
 The MIT License (MIT)
 =====================
 
-Copyright © `2016` `Geek Learning, Cyprien Autexier`
+Copyright © `2016` `Geek Learning, Cyprien Autexier, Adrien Siffermann`
 
 Permission is hereby granted, free of charge, to any person
 obtaining a copy of this software and associated documentation
