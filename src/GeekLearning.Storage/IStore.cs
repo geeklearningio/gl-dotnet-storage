@@ -1,24 +1,29 @@
 ﻿namespace GeekLearning.Storage
 {
+    using System;
     using System.IO;
     using System.Threading.Tasks;
 
     public interface IStore
     {
-        Task<string[]> List(string path);
+        Task<IFileReference[]> ListAsync(string path);
 
-        Task Delete(string path);
+        Task<IFileReference[]> ListAsync(string path, string searchPattern);
 
-        Task<Stream> Read(string path);
+        Task<IFileReference> GetAsync(IPrivateFileReference file);
 
-        Task<byte[]> ReadAllBytes(string path);
+        Task<IFileReference> GetAsync(Uri file);
 
-        Task<string> ReadAllText(string path);
+        Task DeleteAsync(IPrivateFileReference file);
 
-        Task<string> Save(byte[] data, string path, string mimeType);
+        Task<Stream> ReadAsync(IPrivateFileReference file);
 
-        Task<string> Save(Stream data, string path, string mimeType);
+        Task<byte[]> ReadAllBytesAsync(IPrivateFileReference file);
 
-        Task<string> GetExpirableUri(string uri);
+        Task<string> ReadAllTextAsync(IPrivateFileReference file);
+
+        Task<IFileReference> SaveAsync(byte[] data, IPrivateFileReference file, string mimeType);
+
+        Task<IFileReference> SaveAsync(Stream data, IPrivateFileReference file, string mimeType);
     }
 }
