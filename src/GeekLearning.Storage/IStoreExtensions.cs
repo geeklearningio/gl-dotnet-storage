@@ -10,6 +10,16 @@
 
     public static class IStoreExtensions
     {
+        public static Task<IFileReference[]> ListAsync(this IStore store, string path)
+        {
+            return store.ListAsync(path, recursive: false);
+        }
+
+        public static Task<IFileReference[]> ListAsync(this IStore store, string path, string searchPattern)
+        {
+            return store.ListAsync(path, searchPattern, recursive: false);
+        }
+
         public static Task DeleteAsync(this IStore store, string path)
         {
             return store.DeleteAsync(new Internal.PrivateFileReference(path));

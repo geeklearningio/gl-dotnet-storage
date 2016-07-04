@@ -98,44 +98,83 @@
             return new Internal.AzureFileReference(blockBlob);
         }
 
-        public async Task<IFileReference[]> ListAsync(string path)
+        //public async Task<IFileReference[]> ListAsync(string path)
+        //{
+        //    if (string.IsNullOrEmpty(path) || path == "/" || path == "\\")
+        //    {
+        //        path = "";
+        //    }
+
+        //    BlobContinuationToken continuationToken = null;
+        //    List<IListBlobItem> results = new List<IListBlobItem>();
+        //    do
+        //    {
+        //        var response = await this.container.Value.ListBlobsSegmentedAsync(path, true, BlobListingDetails.None, null, continuationToken, new BlobRequestOptions(), new OperationContext());
+        //        continuationToken = response.ContinuationToken;
+        //        results.AddRange(response.Results);
+        //    }
+        //    while (continuationToken != null);
+
+        //    return results.Select(blob => new Internal.AzureFileReference(blob)).ToArray();
+        //}
+
+        public async Task<IFileReference[]> ListAsync(string path, bool recursive)
         {
+            if (string.IsNullOrWhiteSpace(path))
+            {
+                path = null;
+            }
+            else
+            {
+                if (!path.EndsWith("/"))
+                {
+                    path = path + "/";
+                }
+            }
+
             BlobContinuationToken continuationToken = null;
             List<IListBlobItem> results = new List<IListBlobItem>();
             do
             {
-                var response = await this.container.Value.ListBlobsSegmentedAsync(path, continuationToken);
+                var response = await this.container.Value.ListBlobsSegmentedAsync(path, recursive, BlobListingDetails.None, null, continuationToken, new BlobRequestOptions(), new OperationContext());
                 continuationToken = response.ContinuationToken;
                 results.AddRange(response.Results);
             }
             while (continuationToken != null);
 
-            return results.Select(blob => new Internal.AzureFileReference(blob)).ToArray();
+            return results.OfType<ICloudBlob>().Select(blob => new Internal.AzureFileReference(blob)).ToArray();
         }
 
-        public async Task<IFileReference[]> ListAsync(string path, string searchPattern)
+        public async Task<IFileReference[]> ListAsync(string path, string searchPattern, bool recursive)
         {
+            var firstWildCard = searchPattern.IndexOf('*');
+            if (firstWildCard >= 0)
+            {
+                path += searchPattern.Substring(0, firstWildCard);
+                searchPattern = searchPattern.Substring(firstWildCard);
+            }
+
+            Microsoft.Extensions.FileSystemGlobbing.Matcher matcher = new Microsoft.Extensions.FileSystemGlobbing.Matcher(StringComparison.Ordinal);
+            matcher.AddInclude(searchPattern);
+
+            var operationContext = new OperationContext();
+            BlobContinuationToken continuationToken = null;
+            List<IListBlobItem> results = new List<IListBlobItem>();
+            do
+            {
+                var response = await this.container.Value.ListBlobsSegmentedAsync(path, recursive, BlobListingDetails.None, null, continuationToken, new BlobRequestOptions(), new OperationContext());
+                continuationToken = response.ContinuationToken;
+                results.AddRange(response.Results);
+            }
+            while (continuationToken != null);
+
+            var pathMap = results.Select(blob => new Internal.AzureFileReference(blob)).ToDictionary(x => x.Path);
             throw new NotSupportedException();
-            //var firstWildCard = searchPattern.IndexOf('*');
-            //if (firstWildCard >= 0)
-            //{
-            //    path += searchPattern.Substring(0, firstWildCard);
-            //    searchPattern = searchPattern.Substring(firstWildCard);
-            //}
+            //var filteredResults = matcher.Execute(
+            //    new Internal.AzureListDirectoryWrapper(path,
+            //    pathMap.Values));
 
-            //Regex.Escape(wildcardExpression).Replace(@"\*", ".*").Replace(@"\?", ".");
-
-            //BlobContinuationToken continuationToken = null;
-            //List<IListBlobItem> results = new List<IListBlobItem>();
-            //do
-            //{
-            //    var response = await this.container.Value.ListBlobsSegmentedAsync(path, continuationToken);
-            //    continuationToken = response.ContinuationToken;
-            //    results.AddRange(response.Results);
-            //}
-            //while (continuationToken != null);
-
-            //return results.Select(blob => new Internal.AzureFileReference(blob)).ToArray();
+            //return filteredResults.Files.Select(x => pathMap[x.Path]).ToArray();
         }
 
         public async Task DeleteAsync(IPrivateFileReference file)

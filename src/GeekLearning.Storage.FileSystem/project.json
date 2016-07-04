@@ -12,7 +12,8 @@
     "NETStandard.Library": "1.5.0-rc2-24027",
     "Microsoft.Extensions.DependencyInjection.Abstractions": "1.0.0-rc2-final",
     "Microsoft.Extensions.Options": "1.0.0-rc2-final",
-    "GeekLearning.Storage": "*"
+    "GeekLearning.Storage": "*",
+    "Microsoft.Extensions.FileSystemGlobbing": "1.0.0-rc2-final"
   },
 
   "frameworks": {

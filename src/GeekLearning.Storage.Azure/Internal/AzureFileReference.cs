@@ -28,7 +28,7 @@ namespace GeekLearning.Storage.Azure.Internal
         }
 
         public AzureFileReference(ICloudBlob cloudBlob) :
-            this(cloudBlob.Uri.MakeRelativeUri(cloudBlob.Container.Uri).ToString(), cloudBlob)
+            this(cloudBlob.Name, cloudBlob)
         {
 
         }
@@ -53,6 +53,7 @@ namespace GeekLearning.Storage.Azure.Internal
         {
             var memoryStream = new MemoryStream();
             await this.CloudBlob.DownloadRangeToStreamAsync(memoryStream, null, null);
+            memoryStream.Seek(0, SeekOrigin.Begin);
             return memoryStream;
         }
 

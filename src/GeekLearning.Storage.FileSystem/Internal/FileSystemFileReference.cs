@@ -14,7 +14,7 @@ namespace GeekLearning.Storage.FileSystem.Internal
         public FileSystemFileReference(string filePath, string path)
         {
             this.filePath = filePath;
-            this.path = path;
+            this.path = path.Replace('\\', '/');
         }
 
         public string FileSystemPath => this.filePath;

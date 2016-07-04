@@ -6,9 +6,9 @@
 
     public interface IStore
     {
-        Task<IFileReference[]> ListAsync(string path);
+        Task<IFileReference[]> ListAsync(string path, bool recursive);
 
-        Task<IFileReference[]> ListAsync(string path, string searchPattern);
+        Task<IFileReference[]> ListAsync(string path, string searchPattern, bool recursive);
 
         Task<IFileReference> GetAsync(IPrivateFileReference file);
 

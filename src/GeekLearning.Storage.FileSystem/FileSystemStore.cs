@@ -47,33 +47,36 @@
             return fileReference.DeleteAsync();
         }
 
-        public Task<IFileReference[]> ListAsync(string path)
+        public Task<IFileReference[]> ListAsync(string path, bool recursive)
         {
-            var directoryPath = Path.Combine(this.absolutePath, path);
+            var directoryPath = (string.IsNullOrEmpty(path) || path == "/" || path == "\\") ? this.absolutePath : Path.Combine(this.absolutePath, path);
             if (!Directory.Exists(directoryPath))
             {
                 return Task.FromResult(new IFileReference[0]);
             }
 
             return Task.FromResult(Directory.GetFiles(directoryPath)
-                .Select(fullPath => 
+                .Select(fullPath =>
                     (IFileReference)new Internal.FileSystemFileReference(fullPath, fullPath.Replace(this.absolutePath, "")
                     .Trim('/', '\\')))
                 .ToArray());
         }
 
-        public Task<IFileReference[]> ListAsync(string path, string searchPattern)
+        public Task<IFileReference[]> ListAsync(string path, string searchPattern, bool recursive)
         {
-            var directoryPath = Path.Combine(this.absolutePath, path);
+            var directoryPath = (string.IsNullOrEmpty(path) || path == "/" || path == "\\") ? this.absolutePath : Path.Combine(this.absolutePath, path);
             if (!Directory.Exists(directoryPath))
             {
                 return Task.FromResult(new IFileReference[0]);
             }
 
-            return Task.FromResult(Directory.GetFiles(directoryPath, searchPattern)
-                .Select(fullPath =>
-                    (IFileReference)new Internal.FileSystemFileReference(fullPath, fullPath.Replace(this.absolutePath, "")
-                    .Trim('/', '\\')))
+            Microsoft.Extensions.FileSystemGlobbing.Matcher matcher = new Microsoft.Extensions.FileSystemGlobbing.Matcher(StringComparison.Ordinal);
+            matcher.AddInclude(searchPattern);
+
+            var results = matcher.Execute(new Microsoft.Extensions.FileSystemGlobbing.Abstractions.DirectoryInfoWrapper(new DirectoryInfo(path)));
+
+            return Task.FromResult(results.Files
+                .Select(match => (IFileReference)new Internal.FileSystemFileReference(match.Path, match.Path.Replace(this.absolutePath, "").Trim('/', '\\')))
                 .ToArray());
         }
 
