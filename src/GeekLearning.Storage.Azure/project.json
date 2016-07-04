@@ -13,7 +13,8 @@
     "Microsoft.Extensions.DependencyInjection.Abstractions": "1.0.0-rc2-final",
     "Microsoft.Extensions.Options": "1.0.0-rc2-final",
     "WindowsAzure.Storage": "7.0.1-preview",
-    "GeekLearning.Storage": "*"
+    "GeekLearning.Storage": "*",
+    "Microsoft.Extensions.FileSystemGlobbing": "1.0.0-rc2-final"
   },
 
   "frameworks": {

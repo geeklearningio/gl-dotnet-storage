@@ -9,7 +9,7 @@
     {
         private string absolutePath;
 
-        public FileSystemStore(string path, string appPath)
+        public FileSystemStore(string path, string rootPath)
         {
             if (string.IsNullOrEmpty(path))
             {
@@ -22,71 +22,105 @@
             }
             else
             {
-                this.absolutePath = Path.Combine(appPath, path);
+                this.absolutePath = Path.Combine(rootPath, path);
             }
         }
 
-        public Task Delete(string path)
+        private Internal.FileSystemFileReference InternalGetAsync(IPrivateFileReference file)
         {
-            File.Delete(Path.Combine(this.absolutePath, path));
-            return Task.FromResult(true);
+            return new Internal.FileSystemFileReference(Path.Combine(this.absolutePath, file.Path), file.Path);
         }
 
-        public Task<string> GetExpirableUri(string uri)
+        public async Task<IFileReference> GetAsync(IPrivateFileReference file)
         {
-            return Task.FromResult(uri);
+            return InternalGetAsync(file);
         }
 
-        public Task<string[]> List(string path)
+        public async Task<IFileReference> GetAsync(Uri uri)
         {
-            var directoryPath = Path.GetDirectoryName(Path.Combine(this.absolutePath, path));
+            throw new NotImplementedException();
+        }
+
+        public Task DeleteAsync(IPrivateFileReference file)
+        {
+            var fileReference = InternalGetAsync(file);
+            return fileReference.DeleteAsync();
+        }
+
+        public Task<IFileReference[]> ListAsync(string path, bool recursive)
+        {
+            var directoryPath = (string.IsNullOrEmpty(path) || path == "/" || path == "\\") ? this.absolutePath : Path.Combine(this.absolutePath, path);
             if (!Directory.Exists(directoryPath))
             {
-                return Task.FromResult(new string[0]);
+                return Task.FromResult(new IFileReference[0]);
             }
 
-            return Task.FromResult(Directory.GetFiles(directoryPath, path)
-                .Select(x => x.Replace(this.absolutePath, "")
-                .Trim('/', '\\'))
+            return Task.FromResult(Directory.GetFiles(directoryPath)
+                .Select(fullPath =>
+                    (IFileReference)new Internal.FileSystemFileReference(fullPath, fullPath.Replace(this.absolutePath, "")
+                    .Trim('/', '\\')))
                 .ToArray());
         }
 
-        public Task<Stream> Read(string path)
+        public Task<IFileReference[]> ListAsync(string path, string searchPattern, bool recursive)
         {
-            return Task.FromResult((Stream)File.OpenRead(Path.Combine(this.absolutePath, path)));
-        }
-
-        public Task<byte[]> ReadAllBytes(string path)
-        {
-            return Task.FromResult(File.ReadAllBytes(Path.Combine(this.absolutePath, path)));
-        }
-
-        public Task<string> ReadAllText(string path)
-        {
-            return Task.FromResult(File.ReadAllText(Path.Combine(this.absolutePath, path)));
-        }
-
-        public async Task<string> Save(Stream data, string path, string mimeType)
-        {
-            EnsurePathExists(path);
-            using (var file = File.Open(Path.Combine(this.absolutePath, path), FileMode.Create, FileAccess.Write))
+            var directoryPath = (string.IsNullOrEmpty(path) || path == "/" || path == "\\") ? this.absolutePath : Path.Combine(this.absolutePath, path);
+            if (!Directory.Exists(directoryPath))
             {
-                await data.CopyToAsync(file);
+                return Task.FromResult(new IFileReference[0]);
             }
 
-            return path;
+            Microsoft.Extensions.FileSystemGlobbing.Matcher matcher = new Microsoft.Extensions.FileSystemGlobbing.Matcher(StringComparison.Ordinal);
+            matcher.AddInclude(searchPattern);
+
+            var results = matcher.Execute(new Microsoft.Extensions.FileSystemGlobbing.Abstractions.DirectoryInfoWrapper(new DirectoryInfo(path)));
+
+            return Task.FromResult(results.Files
+                .Select(match => (IFileReference)new Internal.FileSystemFileReference(match.Path, match.Path.Replace(this.absolutePath, "").Trim('/', '\\')))
+                .ToArray());
         }
 
-        public Task<string> Save(byte[] data, string path, string mimeType)
+        public Task<Stream> ReadAsync(IPrivateFileReference file)
         {
-            EnsurePathExists(path);
-            File.WriteAllBytes(Path.Combine(this.absolutePath, path), data);
-            return Task.FromResult(path);
+            var fileReference = InternalGetAsync(file);
+            return fileReference.ReadAsync();
+        }
+
+        public Task<byte[]> ReadAllBytesAsync(IPrivateFileReference file)
+        {
+            var fileReference = InternalGetAsync(file);
+            return Task.FromResult(File.ReadAllBytes(fileReference.FileSystemPath));
+        }
+
+        public Task<string> ReadAllTextAsync(IPrivateFileReference file)
+        {
+            var fileReference = InternalGetAsync(file);
+            return Task.FromResult(File.ReadAllText(fileReference.FileSystemPath));
+        }
+
+        public async Task<IFileReference> SaveAsync(Stream data, IPrivateFileReference file, string mimeType)
+        {
+            var fileReference = InternalGetAsync(file);
+            EnsurePathExists(fileReference.FileSystemPath);
+            using (var fileStream = File.Open(fileReference.FileSystemPath, FileMode.Create, FileAccess.Write))
+            {
+                await data.CopyToAsync(fileStream);
+            }
+
+            return fileReference;
+        }
+
+        public Task<IFileReference> SaveAsync(byte[] data, IPrivateFileReference file, string mimeType)
+        {
+            var fileReference = InternalGetAsync(file);
+            EnsurePathExists(fileReference.FileSystemPath);
+            File.WriteAllBytes(fileReference.FileSystemPath, data);
+            return Task.FromResult((IFileReference)fileReference);
         }
 
         private void EnsurePathExists(string path)
         {
-            var directoryPath = Path.GetDirectoryName(Path.Combine(this.absolutePath, path));
+            var directoryPath = Path.GetDirectoryName(path);
             if (!Directory.Exists(directoryPath))
             {
                 Directory.CreateDirectory(directoryPath);

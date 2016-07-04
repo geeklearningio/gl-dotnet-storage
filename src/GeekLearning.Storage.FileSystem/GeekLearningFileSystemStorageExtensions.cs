@@ -6,8 +6,9 @@
 
     public static class GeekLearningFileSystemStorageExtensions
     {
-        public static IServiceCollection AddFileSystemStorage(this IServiceCollection services)
+        public static IServiceCollection AddFileSystemStorage(this IServiceCollection services, string rootPath)
         {
+            services.Configure<FileSystemOptions>(options => options.RootPath = rootPath);
             services.TryAddEnumerable(ServiceDescriptor.Transient<IStorageProvider, FileSystemStorageProvider>());
             return services;
         }

@@ -1,15 +1,15 @@
 ﻿namespace GeekLearning.Storage.FileSystem
 {
     using Storage;
-    using Microsoft.AspNetCore.Hosting;
+    using Microsoft.Extensions.Options;
 
     public class FileSystemStorageProvider : IStorageProvider
     {
-        private IHostingEnvironment appEnv;
+        private IOptions<FileSystemOptions> options;
 
-        public FileSystemStorageProvider(IHostingEnvironment appEnv)
+        public FileSystemStorageProvider(IOptions<FileSystemOptions> options)
         {
-            this.appEnv = appEnv;
+            this.options = options;
         }
 
         public string Name
@@ -22,7 +22,7 @@
 
         public IStore BuildStore(StorageOptions.StorageStore storeOptions)
         {
-            return new FileSystemStore(storeOptions.Parameters["Path"], this.appEnv.ContentRootPath);
+            return new FileSystemStore(storeOptions.Parameters["Path"], this.options.Value.RootPath);
         }
     }
 }
