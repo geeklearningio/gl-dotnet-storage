@@ -9,11 +9,23 @@ namespace GeekLearning.Storage.Azure.Internal
 {
     public class AzureListFileWrapper : FileInfoBase
     {
-        private CloudBlob blob;
+        private ICloudBlob blob;
+        private string name;
+        private AzureListDirectoryWrapper parent;
 
-        public AzureListFileWrapper(CloudBlob blob)
+        public AzureListFileWrapper(ICloudBlob blob, AzureListDirectoryWrapper parent)
         {
             this.blob = blob;
+            var lastSlash = blob.Name.LastIndexOf('/');
+            if (lastSlash >= 0)
+            {
+                this.name = blob.Name.Substring(lastSlash + 1);
+            }
+            else
+            {
+                this.name = blob.Name;
+            }
+            this.parent = parent;
         }
 
         public override string FullName
@@ -28,7 +40,7 @@ namespace GeekLearning.Storage.Azure.Internal
         {
             get
             {
-                return this.blob.Name;
+                return name;
             }
         }
 
@@ -36,7 +48,7 @@ namespace GeekLearning.Storage.Azure.Internal
         {
             get
             {
-                throw new NotImplementedException();
+                return this.parent;
             }
         }
     }

@@ -9,12 +9,31 @@ namespace GeekLearning.Storage.Azure.Internal
 {
     public class AzureListDirectoryWrapper : DirectoryInfoBase
     {
+        private string name;
         private string fullName;
+        private string path;
+        private Dictionary<string, AzureFileReference> files;
 
         public AzureListDirectoryWrapper(FileSystemInfoBase childrens)
         {
             this.fullName = "root";
             this.ParentDirectory = null;
+        }
+
+        public AzureListDirectoryWrapper(string path, Dictionary<string, AzureFileReference> files)
+        {
+            this.path = path;
+            this.files = files;
+            this.fullName = path;
+            var lastSlash = path.LastIndexOf('/');
+            if (lastSlash >= 0)
+            {
+                this.name = path.Substring(lastSlash + 1);
+            }
+            else
+            {
+                this.name = path;
+            }
         }
 
         public AzureListDirectoryWrapper(CloudBlobDirectory blobDirectory, AzureListDirectoryWrapper parent = null)
@@ -35,7 +54,7 @@ namespace GeekLearning.Storage.Azure.Internal
         {
             get
             {
-                return fullName;
+                return name;
             }
         }
 
@@ -46,7 +65,7 @@ namespace GeekLearning.Storage.Azure.Internal
 
         public override IEnumerable<FileSystemInfoBase> EnumerateFileSystemInfos()
         {
-            throw new NotImplementedException();
+            return this.files.Values.Select(file => new AzureListFileWrapper(file.CloudBlob, this));
         }
 
         public override DirectoryInfoBase GetDirectory(string path)
@@ -56,7 +75,7 @@ namespace GeekLearning.Storage.Azure.Internal
 
         public override FileInfoBase GetFile(string path)
         {
-            throw new NotImplementedException();
+            return new AzureListFileWrapper(this.files[path].CloudBlob, this);
         }
     }
 }

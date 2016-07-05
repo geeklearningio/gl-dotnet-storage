@@ -147,10 +147,23 @@
 
         public async Task<IFileReference[]> ListAsync(string path, string searchPattern, bool recursive)
         {
+            if (string.IsNullOrWhiteSpace(path))
+            {
+                path = null;
+            }
+            else
+            {
+                if (!path.EndsWith("/"))
+                {
+                    path = path + "/";
+                }
+            }
+
+            string prefix = path;
             var firstWildCard = searchPattern.IndexOf('*');
             if (firstWildCard >= 0)
             {
-                path += searchPattern.Substring(0, firstWildCard);
+                prefix += searchPattern.Substring(0, firstWildCard);
                 searchPattern = searchPattern.Substring(firstWildCard);
             }
 
@@ -162,19 +175,19 @@
             List<IListBlobItem> results = new List<IListBlobItem>();
             do
             {
-                var response = await this.container.Value.ListBlobsSegmentedAsync(path, recursive, BlobListingDetails.None, null, continuationToken, new BlobRequestOptions(), new OperationContext());
+                var response = await this.container.Value.ListBlobsSegmentedAsync(prefix, recursive, BlobListingDetails.None, null, continuationToken, new BlobRequestOptions(), new OperationContext());
                 continuationToken = response.ContinuationToken;
                 results.AddRange(response.Results);
             }
             while (continuationToken != null);
 
-            var pathMap = results.Select(blob => new Internal.AzureFileReference(blob)).ToDictionary(x => x.Path);
-            throw new NotSupportedException();
-            //var filteredResults = matcher.Execute(
-            //    new Internal.AzureListDirectoryWrapper(path,
-            //    pathMap.Values));
+            var pathMap = results.OfType<ICloudBlob>().Select(blob => new Internal.AzureFileReference(blob)).ToDictionary(x => x.Path);
 
-            //return filteredResults.Files.Select(x => pathMap[x.Path]).ToArray();
+            var filteredResults = matcher.Execute(
+                new Internal.AzureListDirectoryWrapper(path,
+                pathMap));
+
+            return filteredResults.Files.Select(x => pathMap[path + x.Path]).ToArray();
         }
 
         public async Task DeleteAsync(IPrivateFileReference file)

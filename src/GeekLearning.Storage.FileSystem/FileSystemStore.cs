@@ -73,10 +73,10 @@
             Microsoft.Extensions.FileSystemGlobbing.Matcher matcher = new Microsoft.Extensions.FileSystemGlobbing.Matcher(StringComparison.Ordinal);
             matcher.AddInclude(searchPattern);
 
-            var results = matcher.Execute(new Microsoft.Extensions.FileSystemGlobbing.Abstractions.DirectoryInfoWrapper(new DirectoryInfo(path)));
+            var results = matcher.Execute(new Microsoft.Extensions.FileSystemGlobbing.Abstractions.DirectoryInfoWrapper(new DirectoryInfo(directoryPath)));
 
             return Task.FromResult(results.Files
-                .Select(match => (IFileReference)new Internal.FileSystemFileReference(match.Path, match.Path.Replace(this.absolutePath, "").Trim('/', '\\')))
+                .Select(match => (IFileReference)new Internal.FileSystemFileReference(Path.Combine(directoryPath, match.Path), Path.Combine(path, match.Path).Trim('/', '\\')))
                 .ToArray());
         }
 
