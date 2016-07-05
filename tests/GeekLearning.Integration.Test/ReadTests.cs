@@ -9,7 +9,8 @@
     using Microsoft.Extensions.DependencyInjection;
     using System.IO;
 
-    [Collection(nameof(Integration)), Trait("Operation", "Read"), Trait("Kind", "Integration")]
+    [Collection(nameof(IntegrationCollection))]
+    [Trait("Operation", "Read"), Trait("Kind", "Integration")]
     public class ReadTests
     {
         StoresFixture storeFixture;

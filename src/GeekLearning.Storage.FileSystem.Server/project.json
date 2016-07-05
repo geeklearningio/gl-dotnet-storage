@@ -2,7 +2,7 @@
   "version": "1.0.0-*",
 
   "dependencies": {
-    "GeekLearning.Storage.FileSystem": "1.0.0-*",
+    "GeekLearning.Storage.FileSystem": "*",
     "NETStandard.Library": "1.6.0"
   },
 

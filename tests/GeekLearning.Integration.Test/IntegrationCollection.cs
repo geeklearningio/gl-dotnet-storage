@@ -6,8 +6,8 @@ using Xunit;
 
 namespace GeekLearning.Integration.Test
 {
-    [CollectionDefinition(nameof(Integration))]
-    public class Integration: ICollectionFixture<StoresFixture>
+    [CollectionDefinition(nameof(IntegrationCollection))]
+    public class IntegrationCollection: ICollectionFixture<StoresFixture>
     {
 
     }

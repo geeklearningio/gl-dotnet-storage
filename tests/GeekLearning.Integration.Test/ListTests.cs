@@ -8,7 +8,8 @@
     using GeekLearning.Storage;
     using Microsoft.Extensions.DependencyInjection;
 
-    [Collection(nameof(Integration)), Trait("Operation", "List"), Trait("Kind", "Integration")]
+    [Collection(nameof(IntegrationCollection))]
+    [Trait("Operation", "List"), Trait("Kind", "Integration")]
     public class ListTests
     {
         StoresFixture storeFixture;
