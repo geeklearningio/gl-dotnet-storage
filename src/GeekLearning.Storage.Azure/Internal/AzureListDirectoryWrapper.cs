@@ -22,10 +22,10 @@ namespace GeekLearning.Storage.Azure.Internal
 
         public AzureListDirectoryWrapper(string path, Dictionary<string, AzureFileReference> files)
         {
-            this.path = path;
+            this.path = path ?? "";
             this.files = files;
-            this.fullName = path;
-            var lastSlash = path.LastIndexOf('/');
+            this.fullName = this.path;
+            var lastSlash = this.path.LastIndexOf('/');
             if (lastSlash >= 0)
             {
                 this.name = path.Substring(lastSlash + 1);
