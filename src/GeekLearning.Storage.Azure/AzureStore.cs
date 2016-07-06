@@ -15,8 +15,10 @@
         private Lazy<CloudBlobClient> client;
         private string containerName;
 
-        public AzureStore(string connectionString, string containerName)
+        public AzureStore(string storeName, string connectionString, string containerName)
         {
+            this.Name = storeName;
+
             if (string.IsNullOrWhiteSpace(connectionString))
             {
                 throw new ArgumentNullException("connectionString");
@@ -34,9 +36,23 @@
             container = new Lazy<CloudBlobContainer>(() => this.client.Value.GetContainerReference(this.containerName));
         }
 
+        public string Name { get; }
+
         private async Task<Internal.AzureFileReference> InternalGetAsync(IPrivateFileReference file)
         {
-            return new Internal.AzureFileReference(file.Path, await this.container.Value.GetBlobReferenceFromServerAsync(file.Path));
+            try
+            {
+                var blob = await this.container.Value.GetBlobReferenceFromServerAsync(file.Path);
+                return new Internal.AzureFileReference(file.Path, blob);
+            }
+            catch (StorageException storageException)
+            {
+                if (storageException.RequestInformation.HttpStatusCode == 404)
+                {
+                    return null;
+                }
+                throw;
+            }
         }
 
         public async Task<IFileReference> GetAsync(IPrivateFileReference file)

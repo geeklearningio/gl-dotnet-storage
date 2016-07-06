@@ -18,7 +18,7 @@
         public IStore GetStore(string store)
         {
             var conf = this.options.Value.Stores[store];
-            return this.storageProviders.FirstOrDefault(x => x.Name == conf.Provider).BuildStore(conf);
+            return this.storageProviders.FirstOrDefault(x => x.Name == conf.Provider).BuildStore(store, conf);
         }
     }
 }

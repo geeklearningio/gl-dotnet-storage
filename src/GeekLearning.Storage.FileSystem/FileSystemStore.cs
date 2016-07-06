@@ -9,8 +9,10 @@
     {
         private string absolutePath;
 
-        public FileSystemStore(string path, string rootPath)
+        public FileSystemStore(string storeName, string path, string rootPath)
         {
+            this.Name = storeName;
+
             if (string.IsNullOrEmpty(path))
             {
                 throw new ArgumentNullException("path");
@@ -25,10 +27,16 @@
                 this.absolutePath = Path.Combine(rootPath, path);
             }
         }
+        public string Name { get; }
 
         private Internal.FileSystemFileReference InternalGetAsync(IPrivateFileReference file)
         {
-            return new Internal.FileSystemFileReference(Path.Combine(this.absolutePath, file.Path), file.Path);
+            var fullPath = Path.Combine(this.absolutePath, file.Path);
+            if (File.Exists(fullPath))
+            {
+                return new Internal.FileSystemFileReference(fullPath, file.Path);
+            }
+            return null;
         }
 
         public async Task<IFileReference> GetAsync(IPrivateFileReference file)

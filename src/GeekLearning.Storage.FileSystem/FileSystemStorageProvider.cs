@@ -20,9 +20,9 @@
             }
         }
 
-        public IStore BuildStore(StorageOptions.StorageStore storeOptions)
+        public IStore BuildStore(string storeName, StorageOptions.StorageStore storeOptions)
         {
-            return new FileSystemStore(storeOptions.Parameters["Path"], this.options.Value.RootPath);
+            return new FileSystemStore(storeName, storeOptions.Parameters["Path"], this.options.Value.RootPath);
         }
     }
 }
