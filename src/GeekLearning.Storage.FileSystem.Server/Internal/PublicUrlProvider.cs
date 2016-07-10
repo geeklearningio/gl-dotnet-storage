@@ -16,10 +16,10 @@
             this.options = options.Value;
         }
 
-        public string GetPublicUrl(FileSystemFileReference file)
+        public string GetPublicUrl(string storeName, FileSystemFileReference file)
         {
             var uriBuilder = new UriBuilder(options.BaseUri);
-            uriBuilder.Path = options.EndpointPath.Add("/" + file.Path);
+            uriBuilder.Path = options.EndpointPath.Add("/" + storeName).Add("/" + file.Path);
 
             return uriBuilder.ToString();
         }

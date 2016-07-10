@@ -7,6 +7,6 @@ namespace GeekLearning.Storage.FileSystem
 {
     public interface IPublicUrlProvider
     {
-        string GetPublicUrl(Internal.FileSystemFileReference file);
+        string GetPublicUrl(string storeName, Internal.FileSystemFileReference file);
     }
 }

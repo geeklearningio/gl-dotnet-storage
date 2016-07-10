@@ -11,9 +11,11 @@ namespace GeekLearning.Storage.FileSystem.Internal
         private string filePath;
         private string path;
         private IPublicUrlProvider publicUrlProvider;
+        private string storeName;
 
-        public FileSystemFileReference(string filePath, string path, IPublicUrlProvider publicUrlProvider)
+        public FileSystemFileReference(string filePath, string path, string storeName, IPublicUrlProvider publicUrlProvider)
         {
+            this.storeName = storeName;
             this.publicUrlProvider = publicUrlProvider;
             this.filePath = filePath;
             this.path = path.Replace('\\', '/');
@@ -30,7 +32,7 @@ namespace GeekLearning.Storage.FileSystem.Internal
             {
                 if (publicUrlProvider != null)
                 {
-                    return publicUrlProvider.GetPublicUrl(this);
+                    return publicUrlProvider.GetPublicUrl(storeName, this);
                 }
 
                 throw new NotSupportedException("There is not FileSystemServer enabled.");

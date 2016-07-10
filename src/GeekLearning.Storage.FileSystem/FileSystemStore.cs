@@ -44,7 +44,7 @@
         private Internal.FileSystemFileReference InternalGetOrCreateAsync(IPrivateFileReference file)
         {
             var fullPath = Path.Combine(this.absolutePath, file.Path);
-            return new Internal.FileSystemFileReference(fullPath, file.Path, this.publicUrlProvider);
+            return new Internal.FileSystemFileReference(fullPath, file.Path, this.Name, this.publicUrlProvider);
         }
 
         public async Task<IFileReference> GetAsync(IPrivateFileReference file)
@@ -74,7 +74,7 @@
             return Task.FromResult(Directory.GetFiles(directoryPath)
                 .Select(fullPath =>
                     (IFileReference)new Internal.FileSystemFileReference(fullPath, fullPath.Replace(this.absolutePath, "")
-                    .Trim('/', '\\'), this.publicUrlProvider))
+                    .Trim('/', '\\'), this.Name, this.publicUrlProvider))
                 .ToArray());
         }
 
@@ -92,7 +92,7 @@
             var results = matcher.Execute(new Microsoft.Extensions.FileSystemGlobbing.Abstractions.DirectoryInfoWrapper(new DirectoryInfo(directoryPath)));
 
             return Task.FromResult(results.Files
-                .Select(match => (IFileReference)new Internal.FileSystemFileReference(Path.Combine(directoryPath, match.Path), Path.Combine(path, match.Path).Trim('/', '\\'), this.publicUrlProvider))
+                .Select(match => (IFileReference)new Internal.FileSystemFileReference(Path.Combine(directoryPath, match.Path), Path.Combine(path, match.Path).Trim('/', '\\'), this.Name, this.publicUrlProvider))
                 .ToArray());
         }
 
