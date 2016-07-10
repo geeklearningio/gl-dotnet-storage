@@ -4,7 +4,7 @@
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.DependencyInjection.Extensions;
 
-    public static class GeekLearningAzureStorageExtensions
+    public static class AzureStorageExtensions
     {
 
         public static IServiceCollection AddAzureStorage(this IServiceCollection services)

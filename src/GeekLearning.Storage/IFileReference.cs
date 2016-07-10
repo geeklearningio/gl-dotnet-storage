@@ -7,6 +7,8 @@
     {
         string PublicUrl { get; }
 
+        Task ReadToStreamAsync(Stream targetStream);
+
         Task<Stream> ReadAsync();
 
         Task DeleteAsync();

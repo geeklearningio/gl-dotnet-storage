@@ -4,6 +4,6 @@
     {
         string Name { get; }
 
-        IStore BuildStore(string storeName, StorageOptions.StorageStore storeOptions);
+        IStore BuildStore(string storeName, IStorageStoreOptions storeOptions);
     }
 }

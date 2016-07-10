@@ -8,9 +8,11 @@
     public class FileSystemStore : IStore
     {
         private string absolutePath;
+        private IPublicUrlProvider publicUrlProvider;
 
-        public FileSystemStore(string storeName, string path, string rootPath)
+        public FileSystemStore(string storeName, string path, string rootPath, IPublicUrlProvider publicUrlProvider)
         {
+            this.publicUrlProvider = publicUrlProvider;
             this.Name = storeName;
 
             if (string.IsNullOrEmpty(path))
@@ -34,7 +36,7 @@
             var fullPath = Path.Combine(this.absolutePath, file.Path);
             if (File.Exists(fullPath))
             {
-                return new Internal.FileSystemFileReference(fullPath, file.Path);
+                return new Internal.FileSystemFileReference(fullPath, file.Path, this.publicUrlProvider);
             }
             return null;
         }
@@ -66,7 +68,7 @@
             return Task.FromResult(Directory.GetFiles(directoryPath)
                 .Select(fullPath =>
                     (IFileReference)new Internal.FileSystemFileReference(fullPath, fullPath.Replace(this.absolutePath, "")
-                    .Trim('/', '\\')))
+                    .Trim('/', '\\'), this.publicUrlProvider))
                 .ToArray());
         }
 
@@ -84,7 +86,7 @@
             var results = matcher.Execute(new Microsoft.Extensions.FileSystemGlobbing.Abstractions.DirectoryInfoWrapper(new DirectoryInfo(directoryPath)));
 
             return Task.FromResult(results.Files
-                .Select(match => (IFileReference)new Internal.FileSystemFileReference(Path.Combine(directoryPath, match.Path), Path.Combine(path, match.Path).Trim('/', '\\')))
+                .Select(match => (IFileReference)new Internal.FileSystemFileReference(Path.Combine(directoryPath, match.Path), Path.Combine(path, match.Path).Trim('/', '\\'), this.publicUrlProvider))
                 .ToArray());
         }
 

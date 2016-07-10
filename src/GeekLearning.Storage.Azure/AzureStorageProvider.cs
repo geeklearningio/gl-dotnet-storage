@@ -12,7 +12,7 @@
             }
         }
 
-        public IStore BuildStore(string storeName, StorageOptions.StorageStore storeOptions)
+        public IStore BuildStore(string storeName, IStorageStoreOptions storeOptions)
         {
             return new AzureStore(storeName, storeOptions.Parameters["ConnectionString"], storeOptions.Parameters["Container"]);
         }

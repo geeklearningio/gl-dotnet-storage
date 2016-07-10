@@ -66,5 +66,10 @@ namespace GeekLearning.Storage.Azure.Internal
         {
             throw new NotImplementedException();
         }
+
+        public async Task ReadToStreamAsync(Stream targetStream)
+        {
+            await this.CloudBlob.DownloadRangeToStreamAsync(targetStream, null, null);
+        }
     }
 }

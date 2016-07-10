@@ -10,9 +10,11 @@ namespace GeekLearning.Storage.FileSystem.Internal
     {
         private string filePath;
         private string path;
+        private IPublicUrlProvider publicUrlProvider;
 
-        public FileSystemFileReference(string filePath, string path)
+        public FileSystemFileReference(string filePath, string path, IPublicUrlProvider publicUrlProvider)
         {
+            this.publicUrlProvider = publicUrlProvider;
             this.filePath = filePath;
             this.path = path.Replace('\\', '/');
         }
@@ -26,7 +28,12 @@ namespace GeekLearning.Storage.FileSystem.Internal
         {
             get
             {
-                throw new NotImplementedException();
+                if (publicUrlProvider != null)
+                {
+                    return publicUrlProvider.GetPublicUrl(this);
+                }
+
+                throw new NotSupportedException("There is not FileSystemServer enabled.");
             }
         }
 
@@ -44,6 +51,14 @@ namespace GeekLearning.Storage.FileSystem.Internal
         public async Task<Stream> ReadAsync()
         {
             return File.OpenRead(this.filePath);
+        }
+
+        public async Task ReadToStreamAsync(Stream targetStream)
+        {
+            using (var file = File.Open(this.filePath, FileMode.Open, FileAccess.Read))
+            {
+                await file.CopyToAsync(targetStream);
+            }
         }
 
         public async Task UpdateAsync(Stream stream)
