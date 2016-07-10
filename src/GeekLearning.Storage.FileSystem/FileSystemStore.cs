@@ -33,12 +33,18 @@
 
         private Internal.FileSystemFileReference InternalGetAsync(IPrivateFileReference file)
         {
-            var fullPath = Path.Combine(this.absolutePath, file.Path);
-            if (File.Exists(fullPath))
+            var reference = InternalGetOrCreateAsync(file);
+            if (File.Exists(reference.FileSystemPath))
             {
-                return new Internal.FileSystemFileReference(fullPath, file.Path, this.publicUrlProvider);
+                return reference;
             }
             return null;
+        }
+
+        private Internal.FileSystemFileReference InternalGetOrCreateAsync(IPrivateFileReference file)
+        {
+            var fullPath = Path.Combine(this.absolutePath, file.Path);
+            return new Internal.FileSystemFileReference(fullPath, file.Path, this.publicUrlProvider);
         }
 
         public async Task<IFileReference> GetAsync(IPrivateFileReference file)
@@ -122,7 +128,7 @@
 
         public Task<IFileReference> SaveAsync(byte[] data, IPrivateFileReference file, string mimeType)
         {
-            var fileReference = InternalGetAsync(file);
+            var fileReference = InternalGetOrCreateAsync(file);
             EnsurePathExists(fileReference.FileSystemPath);
             File.WriteAllBytes(fileReference.FileSystemPath, data);
             return Task.FromResult((IFileReference)fileReference);
