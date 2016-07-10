@@ -32,32 +32,35 @@ namespace GeekLearning.Storage.FileSystem.Server
         public async Task Invoke(HttpContext context)
         {
             var subPathStart = context.Request.Path.Value.IndexOf('/', 1);
-            var storeName = context.Request.Path.Value.Substring(1, subPathStart - 1);
-            var storageFactory = context.RequestServices.GetRequiredService<IStorageFactory>();
-
-            StorageOptions.StorageStoreOptions storeOptions;
-            if (this.storageOptions.Value.Stores.TryGetValue(storeName, out storeOptions)
-                && storeOptions.Provider == "FileSystem")
+            if (subPathStart > 0)
             {
-                string access;
-                if (!storeOptions.Parameters.TryGetValue("Access", out access) && access != "Public")
-                {
-                    context.Response.StatusCode = StatusCodes.Status403Forbidden;
-                    return;
-                }
+                var storeName = context.Request.Path.Value.Substring(1, subPathStart - 1);
+                var storageFactory = context.RequestServices.GetRequiredService<IStorageFactory>();
 
-                IStore store = storageFactory.GetStore(storeName, storeOptions);
-                //if (storageFactory.TryGetStore(storeName, out store, "FileSystem"))
-                //{
-                var file = await store.GetAsync(context.Request.Path.Value.Substring(subPathStart + 1));
-                if (file != null)
+                StorageOptions.StorageStoreOptions storeOptions;
+                if (this.storageOptions.Value.Stores.TryGetValue(storeName, out storeOptions)
+                    && storeOptions.Provider == "FileSystem")
                 {
-                    context.Response.ContentType = "application/octet-stream";
-                    context.Response.StatusCode = StatusCodes.Status200OK;
-                    await file.ReadToStreamAsync(context.Response.Body);
-                    return;
+                    string access;
+                    if (!storeOptions.Parameters.TryGetValue("Access", out access) && access != "Public")
+                    {
+                        context.Response.StatusCode = StatusCodes.Status403Forbidden;
+                        return;
+                    }
+
+                    IStore store = storageFactory.GetStore(storeName, storeOptions);
+                    //if (storageFactory.TryGetStore(storeName, out store, "FileSystem"))
+                    //{
+                    var file = await store.GetAsync(context.Request.Path.Value.Substring(subPathStart + 1));
+                    if (file != null)
+                    {
+                        context.Response.ContentType = "application/octet-stream";
+                        context.Response.StatusCode = StatusCodes.Status200OK;
+                        await file.ReadToStreamAsync(context.Response.Body);
+                        return;
+                    }
+                    //}
                 }
-                //}
             }
 
             context.Response.StatusCode = StatusCodes.Status404NotFound;
