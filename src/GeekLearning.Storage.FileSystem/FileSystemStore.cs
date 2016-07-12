@@ -116,7 +116,7 @@
 
         public async Task<IFileReference> SaveAsync(Stream data, IPrivateFileReference file, string mimeType)
         {
-            var fileReference = InternalGetAsync(file);
+            var fileReference = InternalGetOrCreateAsync(file);
             EnsurePathExists(fileReference.FileSystemPath);
             using (var fileStream = File.Open(fileReference.FileSystemPath, FileMode.Create, FileAccess.Write))
             {

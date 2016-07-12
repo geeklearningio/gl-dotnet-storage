@@ -48,6 +48,22 @@
             Assert.Equal(expectedText, actualText);
         }
 
+        [Theory(DisplayName = nameof(ReadAllBytesFromSubdirectoryFile)), InlineData("azure"), InlineData("filesystem")]
+        public async Task ReadAllBytesFromSubdirectoryFile(string storeName)
+        {
+            var storageFactory = this.storeFixture.Services.GetRequiredService<IStorageFactory>();
+
+            var store = storageFactory.GetStore(storeName);
+
+            var expectedText = ">42";
+
+            using (var reader = new StreamReader(new MemoryStream(await store.ReadAllBytesAsync("SubDirectory/TextFile2.txt"))))
+            {
+                var actualText = reader.ReadToEnd();
+                Assert.Equal(expectedText, actualText);
+            }
+        }
+
 
         [Theory(DisplayName = nameof(ReadFileFromSubdirectoryFile)), InlineData("azure"), InlineData("filesystem")]
         public async Task ReadFileFromSubdirectoryFile(string storeName)

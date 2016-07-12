@@ -36,5 +36,21 @@
 
             Assert.Equal(textToWrite, readFromWrittenFile);
         }
+
+        [Theory(DisplayName = nameof(SaveStream)), InlineData("azure"), InlineData("filesystem")]
+        public async Task SaveStream(string storeName)
+        {
+            var storageFactory = this.storeFixture.Services.GetRequiredService<IStorageFactory>();
+
+            var store = storageFactory.GetStore(storeName);
+            var textToWrite = "The answer is 42";
+            var filePath = "Update/42-2.txt";
+
+            await store.SaveAsync(new MemoryStream(Encoding.UTF8.GetBytes(textToWrite)), filePath, "text/plain");
+
+            var readFromWrittenFile = await store.ReadAllTextAsync(filePath);
+
+            Assert.Equal(textToWrite, readFromWrittenFile);
+        }
     }
 }
