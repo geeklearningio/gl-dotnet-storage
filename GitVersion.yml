@@ -1,11 +1,9 @@
-mode: ContinuousDeployment
 branches: 
   dev(elop)?(ment)?$:
     tag: alpha
   features?[/-]:
     tag: alpha.{BranchName}
-    mode: ContinuousDelivery
-  (pull|pull\-requests|pr)[/-]:
-    mode: ContinuousDelivery
-  support[/-]:
-    mode: ContinuousDelivery
+  releases?[/-]:
+    mode: ContinuousDeployment
+  hotfix(es)?[/-]:
+    mode: ContinuousDeployment
