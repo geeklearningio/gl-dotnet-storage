@@ -1,4 +1,5 @@
-﻿using Microsoft.WindowsAzure.Storage.Blob;
+﻿using Microsoft.WindowsAzure.Storage;
+using Microsoft.WindowsAzure.Storage.Blob;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -70,6 +71,19 @@ namespace GeekLearning.Storage.Azure.Internal
         public async Task ReadToStreamAsync(Stream targetStream)
         {
             await this.CloudBlob.DownloadRangeToStreamAsync(targetStream, null, null);
+        }
+
+        public async Task<string> ReadAllTextAsync()
+        {
+            using (var reader = new StreamReader(await cloudBlob.OpenReadAsync(AccessCondition.GenerateEmptyCondition(), new BlobRequestOptions(), new OperationContext())))
+            {
+                return await reader.ReadToEndAsync();
+            }
+        }
+
+        public async Task<byte[]> ReadAllBytesAsync()
+        {
+            return (await this.ReadInMemoryAsync()).ToArray();
         }
     }
 }

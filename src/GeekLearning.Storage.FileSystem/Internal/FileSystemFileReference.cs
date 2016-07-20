@@ -50,6 +50,16 @@ namespace GeekLearning.Storage.FileSystem.Internal
             throw new NotImplementedException();
         }
 
+        public Task<byte[]> ReadAllBytesAsync()
+        {
+            return Task.FromResult(File.ReadAllBytes(this.FileSystemPath));
+        }
+
+        public Task<string> ReadAllTextAsync()
+        {
+            return Task.FromResult(File.ReadAllText(this.FileSystemPath));
+        }
+
         public async Task<Stream> ReadAsync()
         {
             return File.OpenRead(this.filePath);

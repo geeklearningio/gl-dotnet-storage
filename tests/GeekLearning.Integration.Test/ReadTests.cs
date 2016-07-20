@@ -65,6 +65,25 @@
         }
 
 
+        [Theory(DisplayName = nameof(ReadAllBytesFromSubdirectoryFileUsingFileReference)), InlineData("azure"), InlineData("filesystem")]
+        public async Task ReadAllBytesFromSubdirectoryFileUsingFileReference(string storeName)
+        {
+            var storageFactory = this.storeFixture.Services.GetRequiredService<IStorageFactory>();
+
+            var store = storageFactory.GetStore(storeName);
+
+            var expectedText = ">42";
+
+            var file = await store.GetAsync("SubDirectory/TextFile2.txt");
+
+            using (var reader = new StreamReader(new MemoryStream(await file.ReadAllBytesAsync())))
+            {
+                var actualText = reader.ReadToEnd();
+                Assert.Equal(expectedText, actualText);
+            }
+        }
+
+
         [Theory(DisplayName = nameof(ReadFileFromSubdirectoryFile)), InlineData("azure"), InlineData("filesystem")]
         public async Task ReadFileFromSubdirectoryFile(string storeName)
         {
@@ -84,6 +103,42 @@
             }
 
             Assert.Equal(expectedText, actualText);
+        }
+
+        [Theory(DisplayName = nameof(ReadAllTextFromSubdirectoryFileUsingFileReference)), InlineData("azure"), InlineData("filesystem")]
+        public async Task ReadAllTextFromSubdirectoryFileUsingFileReference(string storeName)
+        {
+            var storageFactory = this.storeFixture.Services.GetRequiredService<IStorageFactory>();
+
+            var store = storageFactory.GetStore(storeName);
+
+            var expectedText = ">42";
+
+            var file = await store.GetAsync("SubDirectory/TextFile2.txt");
+
+            string actualText = await file.ReadAllTextAsync();
+
+            Assert.Equal(expectedText, actualText);
+        }
+
+
+        [Theory(DisplayName = nameof(ListThenReadAllTextFromSubdirectoryFile)), InlineData("azure"), InlineData("filesystem")]
+        public async Task ListThenReadAllTextFromSubdirectoryFile(string storeName)
+        {
+            var storageFactory = this.storeFixture.Services.GetRequiredService<IStorageFactory>();
+
+            var store = storageFactory.GetStore(storeName);
+
+            var expectedText = ">42";
+
+            var files = await store.ListAsync("SubDirectory");
+
+            foreach (var file in files)
+            {
+                string actualText = await store.ReadAllTextAsync(file);
+
+                Assert.Equal(expectedText, actualText);
+            }
         }
     }
 }

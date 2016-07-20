@@ -11,6 +11,10 @@
 
         Task<Stream> ReadAsync();
 
+        Task<string> ReadAllTextAsync();
+
+        Task<byte[]> ReadAllBytesAsync();
+
         Task DeleteAsync();
 
         Task UpdateAsync(Stream stream);

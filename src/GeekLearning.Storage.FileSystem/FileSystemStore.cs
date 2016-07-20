@@ -105,13 +105,13 @@
         public Task<byte[]> ReadAllBytesAsync(IPrivateFileReference file)
         {
             var fileReference = InternalGetAsync(file);
-            return Task.FromResult(File.ReadAllBytes(fileReference.FileSystemPath));
+            return fileReference.ReadAllBytesAsync();
         }
 
         public Task<string> ReadAllTextAsync(IPrivateFileReference file)
         {
             var fileReference = InternalGetAsync(file);
-            return Task.FromResult(File.ReadAllText(fileReference.FileSystemPath));
+            return fileReference.ReadAllTextAsync();
         }
 
         public async Task<IFileReference> SaveAsync(Stream data, IPrivateFileReference file, string mimeType)

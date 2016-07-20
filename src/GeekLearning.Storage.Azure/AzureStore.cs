@@ -40,6 +40,12 @@
 
         private async Task<Internal.AzureFileReference> InternalGetAsync(IPrivateFileReference file)
         {
+            var azureFile = file as Internal.AzureFileReference;
+            if (azureFile != null)
+            {
+                return azureFile;
+            }
+
             try
             {
                 var blob = await this.container.Value.GetBlobReferenceFromServerAsync(file.Path);
@@ -82,16 +88,13 @@
         public async Task<byte[]> ReadAllBytesAsync(IPrivateFileReference file)
         {
             var fileReference = await InternalGetAsync(file);
-            return (await fileReference.ReadInMemoryAsync()).ToArray();
+            return await fileReference.ReadAllBytesAsync();
         }
 
         public async Task<string> ReadAllTextAsync(IPrivateFileReference file)
         {
             var fileReference = await InternalGetAsync(file);
-            using (var reader = new StreamReader(await fileReference.CloudBlob.OpenReadAsync(AccessCondition.GenerateEmptyCondition(), new BlobRequestOptions(), new OperationContext())))
-            {
-                return await reader.ReadToEndAsync();
-            }
+            return await fileReference.ReadAllTextAsync();
         }
 
         public async Task<IFileReference> SaveAsync(Stream data, IPrivateFileReference file, string mimeType)
@@ -113,26 +116,6 @@
             await blockBlob.SetPropertiesAsync();
             return new Internal.AzureFileReference(blockBlob);
         }
-
-        //public async Task<IFileReference[]> ListAsync(string path)
-        //{
-        //    if (string.IsNullOrEmpty(path) || path == "/" || path == "\\")
-        //    {
-        //        path = "";
-        //    }
-
-        //    BlobContinuationToken continuationToken = null;
-        //    List<IListBlobItem> results = new List<IListBlobItem>();
-        //    do
-        //    {
-        //        var response = await this.container.Value.ListBlobsSegmentedAsync(path, true, BlobListingDetails.None, null, continuationToken, new BlobRequestOptions(), new OperationContext());
-        //        continuationToken = response.ContinuationToken;
-        //        results.AddRange(response.Results);
-        //    }
-        //    while (continuationToken != null);
-
-        //    return results.Select(blob => new Internal.AzureFileReference(blob)).ToArray();
-        //}
 
         public async Task<IFileReference[]> ListAsync(string path, bool recursive)
         {
