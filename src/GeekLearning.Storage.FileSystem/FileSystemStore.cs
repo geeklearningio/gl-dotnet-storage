@@ -1,6 +1,7 @@
 ﻿namespace GeekLearning.Storage.FileSystem
 {
     using System;
+    using System.Collections.Generic;
     using System.IO;
     using System.Linq;
     using System.Threading.Tasks;
@@ -47,12 +48,12 @@
             return new Internal.FileSystemFileReference(fullPath, file.Path, this.Name, this.publicUrlProvider);
         }
 
-        public async Task<IFileReference> GetAsync(IPrivateFileReference file)
+        public async Task<IFileReference> GetAsync(IPrivateFileReference file, bool withMetadata)
         {
             return InternalGetAsync(file);
         }
 
-        public async Task<IFileReference> GetAsync(Uri uri)
+        public async Task<IFileReference> GetAsync(Uri uri, bool withMetadata)
         {
             throw new NotImplementedException();
         }
@@ -63,7 +64,7 @@
             return fileReference.DeleteAsync();
         }
 
-        public Task<IFileReference[]> ListAsync(string path, bool recursive)
+        public Task<IFileReference[]> ListAsync(string path, bool recursive, bool withMetadata)
         {
             var directoryPath = (string.IsNullOrEmpty(path) || path == "/" || path == "\\") ? this.absolutePath : Path.Combine(this.absolutePath, path);
             if (!Directory.Exists(directoryPath))
@@ -78,7 +79,7 @@
                 .ToArray());
         }
 
-        public Task<IFileReference[]> ListAsync(string path, string searchPattern, bool recursive)
+        public Task<IFileReference[]> ListAsync(string path, string searchPattern, bool recursive, bool withMetadata)
         {
             var directoryPath = (string.IsNullOrEmpty(path) || path == "/" || path == "\\") ? this.absolutePath : Path.Combine(this.absolutePath, path);
             if (!Directory.Exists(directoryPath))
@@ -114,7 +115,7 @@
             return fileReference.ReadAllTextAsync();
         }
 
-        public async Task<IFileReference> SaveAsync(Stream data, IPrivateFileReference file, string mimeType)
+        public async Task<IFileReference> SaveAsync(Stream data, IPrivateFileReference file, string contentType)
         {
             var fileReference = InternalGetOrCreateAsync(file);
             EnsurePathExists(fileReference.FileSystemPath);
@@ -126,7 +127,7 @@
             return fileReference;
         }
 
-        public Task<IFileReference> SaveAsync(byte[] data, IPrivateFileReference file, string mimeType)
+        public Task<IFileReference> SaveAsync(byte[] data, IPrivateFileReference file, string contentType)
         {
             var fileReference = InternalGetOrCreateAsync(file);
             EnsurePathExists(fileReference.FileSystemPath);
@@ -141,6 +142,11 @@
             {
                 Directory.CreateDirectory(directoryPath);
             }
+        }
+
+        public Task<IFileReference> AddMetadataAsync(IPrivateFileReference file, IDictionary<string, string> metadata)
+        {
+            throw new NotImplementedException();
         }
     }
 }

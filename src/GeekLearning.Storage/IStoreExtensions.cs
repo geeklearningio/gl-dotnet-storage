@@ -10,14 +10,14 @@
 
     public static class IStoreExtensions
     {
-        public static Task<IFileReference[]> ListAsync(this IStore store, string path)
+        public static Task<IFileReference[]> ListAsync(this IStore store, string path, bool recursive = false, bool withMetadata = false)
         {
-            return store.ListAsync(path, recursive: false);
+            return store.ListAsync(path, recursive: recursive, withMetadata: withMetadata);
         }
 
-        public static Task<IFileReference[]> ListAsync(this IStore store, string path, string searchPattern)
+        public static Task<IFileReference[]> ListAsync(this IStore store, string path, string searchPattern, bool recursive = false, bool withMetadata = false)
         {
-            return store.ListAsync(path, searchPattern, recursive: false);
+            return store.ListAsync(path, searchPattern, recursive: recursive, withMetadata: withMetadata);
         }
 
         public static Task DeleteAsync(this IStore store, string path)
@@ -27,7 +27,7 @@
 
         public static Task<IFileReference> GetAsync(this IStore store, string path)
         {
-            return store.GetAsync(new Internal.PrivateFileReference(path));
+            return store.GetAsync(new Internal.PrivateFileReference(path), withMetadata: false);
         }
 
         public static Task<Stream> ReadAsync(this IStore store, string path)
@@ -45,14 +45,14 @@
             return store.ReadAllTextAsync(new Internal.PrivateFileReference(path));
         }
 
-        public static Task<IFileReference> SaveAsync(this IStore store, byte[] data, string path, string mimeType)
+        public static Task<IFileReference> SaveAsync(this IStore store, byte[] data, string path, string contentType)
         {
-            return store.SaveAsync(data, new Internal.PrivateFileReference(path), mimeType);
+            return store.SaveAsync(data, new Internal.PrivateFileReference(path), contentType);
         }
 
-        public static Task<IFileReference> SaveAsync(this IStore store, Stream data, string path, string mimeType)
+        public static Task<IFileReference> SaveAsync(this IStore store, Stream data, string path, string contentType)
         {
-            return store.SaveAsync(data, new Internal.PrivateFileReference(path), mimeType);
+            return store.SaveAsync(data, new Internal.PrivateFileReference(path), contentType);
         }
     }
 }

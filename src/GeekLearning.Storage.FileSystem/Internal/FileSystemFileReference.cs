@@ -12,6 +12,7 @@ namespace GeekLearning.Storage.FileSystem.Internal
         private string path;
         private IPublicUrlProvider publicUrlProvider;
         private string storeName;
+        private FileInfo fileInfo;
 
         public FileSystemFileReference(string filePath, string path, string storeName, IPublicUrlProvider publicUrlProvider)
         {
@@ -19,9 +20,18 @@ namespace GeekLearning.Storage.FileSystem.Internal
             this.publicUrlProvider = publicUrlProvider;
             this.filePath = filePath;
             this.path = path.Replace('\\', '/');
+            this.fileInfo = new FileInfo(this.FileSystemPath);
         }
 
         public string FileSystemPath => this.filePath;
+
+        public IDictionary<string, string> Metadata
+        {
+            get
+            {
+                throw new NotImplementedException();
+            }
+        }
 
         public string Path => this.path;
 
@@ -39,6 +49,18 @@ namespace GeekLearning.Storage.FileSystem.Internal
             }
         }
 
+        public DateTimeOffset? LastModified => new DateTimeOffset(this.fileInfo.LastWriteTimeUtc, TimeZoneInfo.Local.BaseUtcOffset);
+
+        public string ContentType
+        {
+            get
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        public long? Length => this.fileInfo.Length;
+       
         public Task DeleteAsync()
         {
             File.Delete(this.filePath);
@@ -79,6 +101,16 @@ namespace GeekLearning.Storage.FileSystem.Internal
             {
                 await stream.CopyToAsync(file);
             }
+        }
+
+        public Task AddMetadataAsync(IDictionary<string, string> metadata)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task SaveMetadataAsync()
+        {
+            throw new NotImplementedException();
         }
     }
 }

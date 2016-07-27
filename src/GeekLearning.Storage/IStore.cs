@@ -1,6 +1,7 @@
 ﻿namespace GeekLearning.Storage
 {
     using System;
+    using System.Collections.Generic;
     using System.IO;
     using System.Threading.Tasks;
 
@@ -8,13 +9,13 @@
     {
         string Name { get; }
 
-        Task<IFileReference[]> ListAsync(string path, bool recursive);
+        Task<IFileReference[]> ListAsync(string path, bool recursive, bool withMetadata);
 
-        Task<IFileReference[]> ListAsync(string path, string searchPattern, bool recursive);
+        Task<IFileReference[]> ListAsync(string path, string searchPattern, bool recursive, bool withMetadata);
 
-        Task<IFileReference> GetAsync(IPrivateFileReference file);
+        Task<IFileReference> GetAsync(IPrivateFileReference file, bool withMetadata);
 
-        Task<IFileReference> GetAsync(Uri file);
+        Task<IFileReference> GetAsync(Uri file, bool withMetadata);
 
         Task DeleteAsync(IPrivateFileReference file);
 
@@ -24,8 +25,10 @@
 
         Task<string> ReadAllTextAsync(IPrivateFileReference file);
 
-        Task<IFileReference> SaveAsync(byte[] data, IPrivateFileReference file, string mimeType);
+        Task<IFileReference> SaveAsync(byte[] data, IPrivateFileReference file, string contentType);
 
-        Task<IFileReference> SaveAsync(Stream data, IPrivateFileReference file, string mimeType);
+        Task<IFileReference> SaveAsync(Stream data, IPrivateFileReference file, string contentType);
+
+        Task<IFileReference> AddMetadataAsync(IPrivateFileReference file, IDictionary<string, string> metadata);
     }
 }

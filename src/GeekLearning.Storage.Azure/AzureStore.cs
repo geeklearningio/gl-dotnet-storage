@@ -38,7 +38,7 @@
 
         public string Name { get; }
 
-        private async Task<Internal.AzureFileReference> InternalGetAsync(IPrivateFileReference file)
+        private async Task<Internal.AzureFileReference> InternalGetAsync(IPrivateFileReference file, bool withMetadata)
         {
             var azureFile = file as Internal.AzureFileReference;
             if (azureFile != null)
@@ -61,12 +61,12 @@
             }
         }
 
-        public async Task<IFileReference> GetAsync(IPrivateFileReference file)
+        public async Task<IFileReference> GetAsync(IPrivateFileReference file, bool withMetadata)
         {
-            return await InternalGetAsync(file);
+            return await InternalGetAsync(file, withMetadata);
         }
 
-        public async Task<IFileReference> GetAsync(Uri uri)
+        public async Task<IFileReference> GetAsync(Uri uri, bool withMetadata)
         {
             if (uri.IsAbsoluteUri)
             {
@@ -81,43 +81,43 @@
 
         public async Task<Stream> ReadAsync(IPrivateFileReference file)
         {
-            var fileReference = await InternalGetAsync(file);
+            var fileReference = await InternalGetAsync(file, false);
             return await fileReference.ReadInMemoryAsync();
         }
 
         public async Task<byte[]> ReadAllBytesAsync(IPrivateFileReference file)
         {
-            var fileReference = await InternalGetAsync(file);
+            var fileReference = await InternalGetAsync(file, false);
             return await fileReference.ReadAllBytesAsync();
         }
 
         public async Task<string> ReadAllTextAsync(IPrivateFileReference file)
         {
-            var fileReference = await InternalGetAsync(file);
+            var fileReference = await InternalGetAsync(file, false);
             return await fileReference.ReadAllTextAsync();
         }
 
-        public async Task<IFileReference> SaveAsync(Stream data, IPrivateFileReference file, string mimeType)
+        public async Task<IFileReference> SaveAsync(Stream data, IPrivateFileReference file, string contentType)
         {
             var blockBlob = this.container.Value.GetBlockBlobReference(file.Path);
             await blockBlob.UploadFromStreamAsync(data);
-            blockBlob.Properties.ContentType = mimeType;
+            blockBlob.Properties.ContentType = contentType;
             blockBlob.Properties.CacheControl = "max-age=300, must-revalidate";
             await blockBlob.SetPropertiesAsync();
             return new Internal.AzureFileReference(blockBlob);
         }
 
-        public async Task<IFileReference> SaveAsync(byte[] data, IPrivateFileReference file, string mimeType)
+        public async Task<IFileReference> SaveAsync(byte[] data, IPrivateFileReference file, string contentType)
         {
             var blockBlob = this.container.Value.GetBlockBlobReference(file.Path);
             await blockBlob.UploadFromByteArrayAsync(data, 0, data.Length);
-            blockBlob.Properties.ContentType = mimeType;
+            blockBlob.Properties.ContentType = contentType;
             blockBlob.Properties.CacheControl = "max-age=300, must-revalidate";
             await blockBlob.SetPropertiesAsync();
             return new Internal.AzureFileReference(blockBlob);
         }
 
-        public async Task<IFileReference[]> ListAsync(string path, bool recursive)
+        public async Task<IFileReference[]> ListAsync(string path, bool recursive, bool withMetadata)
         {
             if (string.IsNullOrWhiteSpace(path))
             {
@@ -135,7 +135,7 @@
             List<IListBlobItem> results = new List<IListBlobItem>();
             do
             {
-                var response = await this.container.Value.ListBlobsSegmentedAsync(path, recursive, BlobListingDetails.None, null, continuationToken, new BlobRequestOptions(), new OperationContext());
+                var response = await this.container.Value.ListBlobsSegmentedAsync(path, recursive, withMetadata ? BlobListingDetails.Metadata : BlobListingDetails.None, null, continuationToken, new BlobRequestOptions(), new OperationContext());
                 continuationToken = response.ContinuationToken;
                 results.AddRange(response.Results);
             }
@@ -144,7 +144,7 @@
             return results.OfType<ICloudBlob>().Select(blob => new Internal.AzureFileReference(blob)).ToArray();
         }
 
-        public async Task<IFileReference[]> ListAsync(string path, string searchPattern, bool recursive)
+        public async Task<IFileReference[]> ListAsync(string path, string searchPattern, bool recursive, bool withMetadata)
         {
             if (string.IsNullOrWhiteSpace(path))
             {
@@ -174,7 +174,7 @@
             List<IListBlobItem> results = new List<IListBlobItem>();
             do
             {
-                var response = await this.container.Value.ListBlobsSegmentedAsync(prefix, recursive, BlobListingDetails.None, null, continuationToken, new BlobRequestOptions(), new OperationContext());
+                var response = await this.container.Value.ListBlobsSegmentedAsync(prefix, recursive, withMetadata ? BlobListingDetails.Metadata : BlobListingDetails.None, null, continuationToken, new BlobRequestOptions(), new OperationContext());
                 continuationToken = response.ContinuationToken;
                 results.AddRange(response.Results);
             }
@@ -191,8 +191,17 @@
 
         public async Task DeleteAsync(IPrivateFileReference file)
         {
-            var fileReference = await InternalGetAsync(file);
+            var fileReference = await InternalGetAsync(file, false);
             await fileReference.DeleteAsync();
+        }
+
+        public async Task<IFileReference> AddMetadataAsync(IPrivateFileReference file, IDictionary<string, string> metadata)
+        {
+            var fileReference = await InternalGetAsync(file, false);
+
+            fileReference.AddMetadataAsync(metadata);
+
+            return fileReference;
         }
     }
 }
