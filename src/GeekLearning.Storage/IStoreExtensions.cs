@@ -25,9 +25,9 @@
             return store.DeleteAsync(new Internal.PrivateFileReference(path));
         }
 
-        public static Task<IFileReference> GetAsync(this IStore store, string path)
+        public static Task<IFileReference> GetAsync(this IStore store, string path, bool withMetadata = false)
         {
-            return store.GetAsync(new Internal.PrivateFileReference(path), withMetadata: false);
+            return store.GetAsync(new Internal.PrivateFileReference(path), withMetadata: withMetadata);
         }
 
         public static Task<Stream> ReadAsync(this IStore store, string path)
