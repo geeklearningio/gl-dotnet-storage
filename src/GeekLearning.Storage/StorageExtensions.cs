@@ -3,11 +3,11 @@
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.DependencyInjection.Extensions;
 
-    public static class GeekLearningStorageExtensions
+    public static class StorageExtensions
     {
         public static IServiceCollection AddStorage(this IServiceCollection services)
         {
-            services.TryAddTransient<IStorageFactory, StorageFactory>();
+            services.TryAddTransient<IStorageFactory, Internal.StorageFactory>();
             return services;
         }
     }

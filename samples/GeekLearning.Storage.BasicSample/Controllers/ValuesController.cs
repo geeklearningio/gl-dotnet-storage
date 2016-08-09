@@ -22,14 +22,15 @@ namespace GeekLearning.Storage.BasicSample.Controllers
         public async Task<IEnumerable<string>> Get()
         {
 
-            return new string[] { await templates.Store.ReadAllText("json.json"), "value2" };
+            return new string[] { await templates.Store.ReadAllTextAsync("json.json"), "value2" };
         }
 
         // GET api/values/5
-        [HttpGet("{id}")]
-        public string Get(int id)
+        [HttpGet("files")]
+        public async Task<IEnumerable<string>> Get(int id)
         {
-            return "value";
+            var files = await templates.Store.ListAsync("");
+            return files.Select(x => x.PublicUrl);
         }
 
         // POST api/values

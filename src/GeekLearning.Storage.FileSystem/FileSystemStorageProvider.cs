@@ -1,15 +1,20 @@
 ﻿namespace GeekLearning.Storage.FileSystem
 {
     using Storage;
-    using Microsoft.AspNetCore.Hosting;
+    using Microsoft.Extensions.Options;
+    using System;
+    using Microsoft.Extensions.DependencyInjection.Extensions;
+    using Microsoft.Extensions.DependencyInjection;
 
     public class FileSystemStorageProvider : IStorageProvider
     {
-        private IHostingEnvironment appEnv;
+        private IOptions<FileSystemOptions> options;
+        private IServiceProvider serviceProvider;
 
-        public FileSystemStorageProvider(IHostingEnvironment appEnv)
+        public FileSystemStorageProvider(IOptions<FileSystemOptions> options, IServiceProvider serviceProvider)
         {
-            this.appEnv = appEnv;
+            this.options = options;
+            this.serviceProvider = serviceProvider;
         }
 
         public string Name
@@ -20,9 +25,10 @@
             }
         }
 
-        public IStore BuildStore(StorageOptions.StorageStore storeOptions)
+        public IStore BuildStore(string storeName, IStorageStoreOptions storeOptions)
         {
-            return new FileSystemStore(storeOptions.Parameters["Path"], this.appEnv.ContentRootPath);
+            var publicUrlProvider = this.serviceProvider.GetService<IPublicUrlProvider>();
+            return new FileSystemStore(storeName, storeOptions.Parameters["Path"], this.options.Value.RootPath, publicUrlProvider);
         }
     }
 }

@@ -1,6 +1,7 @@
 ﻿namespace GeekLearning.Storage.FileSystem
 {
     using System;
+    using System.Collections.Generic;
     using System.IO;
     using System.Linq;
     using System.Threading.Tasks;
@@ -8,9 +9,13 @@
     public class FileSystemStore : IStore
     {
         private string absolutePath;
+        private IPublicUrlProvider publicUrlProvider;
 
-        public FileSystemStore(string path, string appPath)
+        public FileSystemStore(string storeName, string path, string rootPath, IPublicUrlProvider publicUrlProvider)
         {
+            this.publicUrlProvider = publicUrlProvider;
+            this.Name = storeName;
+
             if (string.IsNullOrEmpty(path))
             {
                 throw new ArgumentNullException("path");
@@ -22,75 +27,126 @@
             }
             else
             {
-                this.absolutePath = Path.Combine(appPath, path);
+                this.absolutePath = Path.Combine(rootPath, path);
             }
         }
+        public string Name { get; }
 
-        public Task Delete(string path)
+        private Internal.FileSystemFileReference InternalGetAsync(IPrivateFileReference file)
         {
-            File.Delete(Path.Combine(this.absolutePath, path));
-            return Task.FromResult(true);
+            var reference = InternalGetOrCreateAsync(file);
+            if (File.Exists(reference.FileSystemPath))
+            {
+                return reference;
+            }
+            return null;
         }
 
-        public Task<string> GetExpirableUri(string uri)
+        private Internal.FileSystemFileReference InternalGetOrCreateAsync(IPrivateFileReference file)
         {
-            return Task.FromResult(uri);
+            var fullPath = Path.Combine(this.absolutePath, file.Path);
+            return new Internal.FileSystemFileReference(fullPath, file.Path, this.Name, this.publicUrlProvider);
         }
 
-        public Task<string[]> List(string path)
+        public async Task<IFileReference> GetAsync(IPrivateFileReference file, bool withMetadata)
         {
-            var directoryPath = Path.GetDirectoryName(Path.Combine(this.absolutePath, path));
+            return InternalGetAsync(file);
+        }
+
+        public async Task<IFileReference> GetAsync(Uri uri, bool withMetadata)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task DeleteAsync(IPrivateFileReference file)
+        {
+            var fileReference = InternalGetAsync(file);
+            return fileReference.DeleteAsync();
+        }
+
+        public Task<IFileReference[]> ListAsync(string path, bool recursive, bool withMetadata)
+        {
+            var directoryPath = (string.IsNullOrEmpty(path) || path == "/" || path == "\\") ? this.absolutePath : Path.Combine(this.absolutePath, path);
             if (!Directory.Exists(directoryPath))
             {
-                return Task.FromResult(new string[0]);
+                return Task.FromResult(new IFileReference[0]);
             }
 
-            return Task.FromResult(Directory.GetFiles(directoryPath, path)
-                .Select(x => x.Replace(this.absolutePath, "")
-                .Trim('/', '\\'))
+            return Task.FromResult(Directory.GetFiles(directoryPath)
+                .Select(fullPath =>
+                    (IFileReference)new Internal.FileSystemFileReference(fullPath, fullPath.Replace(this.absolutePath, "")
+                    .Trim('/', '\\'), this.Name, this.publicUrlProvider))
                 .ToArray());
         }
 
-        public Task<Stream> Read(string path)
+        public Task<IFileReference[]> ListAsync(string path, string searchPattern, bool recursive, bool withMetadata)
         {
-            return Task.FromResult((Stream)File.OpenRead(Path.Combine(this.absolutePath, path)));
-        }
-
-        public Task<byte[]> ReadAllBytes(string path)
-        {
-            return Task.FromResult(File.ReadAllBytes(Path.Combine(this.absolutePath, path)));
-        }
-
-        public Task<string> ReadAllText(string path)
-        {
-            return Task.FromResult(File.ReadAllText(Path.Combine(this.absolutePath, path)));
-        }
-
-        public async Task<string> Save(Stream data, string path, string mimeType)
-        {
-            EnsurePathExists(path);
-            using (var file = File.Open(Path.Combine(this.absolutePath, path), FileMode.Create, FileAccess.Write))
+            var directoryPath = (string.IsNullOrEmpty(path) || path == "/" || path == "\\") ? this.absolutePath : Path.Combine(this.absolutePath, path);
+            if (!Directory.Exists(directoryPath))
             {
-                await data.CopyToAsync(file);
+                return Task.FromResult(new IFileReference[0]);
             }
 
-            return path;
+            Microsoft.Extensions.FileSystemGlobbing.Matcher matcher = new Microsoft.Extensions.FileSystemGlobbing.Matcher(StringComparison.Ordinal);
+            matcher.AddInclude(searchPattern);
+
+            var results = matcher.Execute(new Microsoft.Extensions.FileSystemGlobbing.Abstractions.DirectoryInfoWrapper(new DirectoryInfo(directoryPath)));
+
+            return Task.FromResult(results.Files
+                .Select(match => (IFileReference)new Internal.FileSystemFileReference(Path.Combine(directoryPath, match.Path), Path.Combine(path, match.Path).Trim('/', '\\'), this.Name, this.publicUrlProvider))
+                .ToArray());
         }
 
-        public Task<string> Save(byte[] data, string path, string mimeType)
+        public Task<Stream> ReadAsync(IPrivateFileReference file)
         {
-            EnsurePathExists(path);
-            File.WriteAllBytes(Path.Combine(this.absolutePath, path), data);
-            return Task.FromResult(path);
+            var fileReference = InternalGetAsync(file);
+            return fileReference.ReadAsync();
+        }
+
+        public Task<byte[]> ReadAllBytesAsync(IPrivateFileReference file)
+        {
+            var fileReference = InternalGetAsync(file);
+            return fileReference.ReadAllBytesAsync();
+        }
+
+        public Task<string> ReadAllTextAsync(IPrivateFileReference file)
+        {
+            var fileReference = InternalGetAsync(file);
+            return fileReference.ReadAllTextAsync();
+        }
+
+        public async Task<IFileReference> SaveAsync(Stream data, IPrivateFileReference file, string contentType)
+        {
+            var fileReference = InternalGetOrCreateAsync(file);
+            EnsurePathExists(fileReference.FileSystemPath);
+            using (var fileStream = File.Open(fileReference.FileSystemPath, FileMode.Create, FileAccess.Write))
+            {
+                await data.CopyToAsync(fileStream);
+            }
+
+            return fileReference;
+        }
+
+        public Task<IFileReference> SaveAsync(byte[] data, IPrivateFileReference file, string contentType)
+        {
+            var fileReference = InternalGetOrCreateAsync(file);
+            EnsurePathExists(fileReference.FileSystemPath);
+            File.WriteAllBytes(fileReference.FileSystemPath, data);
+            return Task.FromResult((IFileReference)fileReference);
         }
 
         private void EnsurePathExists(string path)
         {
-            var directoryPath = Path.GetDirectoryName(Path.Combine(this.absolutePath, path));
+            var directoryPath = Path.GetDirectoryName(path);
             if (!Directory.Exists(directoryPath))
             {
                 Directory.CreateDirectory(directoryPath);
             }
+        }
+
+        public Task<IFileReference> AddMetadataAsync(IPrivateFileReference file, IDictionary<string, string> metadata)
+        {
+            throw new NotImplementedException();
         }
     }
 }

@@ -2,13 +2,13 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Xunit;
 
 namespace GeekLearning.Integration.Test
 {
-    public class Program
+    [CollectionDefinition(nameof(IntegrationCollection))]
+    public class IntegrationCollection: ICollectionFixture<StoresFixture>
     {
-        public static void Main(string[] args)
-        {
-        }
+
     }
 }

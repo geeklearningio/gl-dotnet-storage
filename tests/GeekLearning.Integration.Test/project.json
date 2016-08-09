@@ -1,23 +1,47 @@
-﻿{
+{
   "version": "1.0.0-*",
   "buildOptions": {
-    "emitEntryPoint": true
+    "copyToOutput": [
+      "SampleDirectory/**/*.*",
+      "appsettings.json",
+      "appsettings.*.json"
+    ]
   },
+
+  "testRunner": "xunit",
 
   "dependencies": {
     "GeekLearning.Storage": "*",
     "GeekLearning.Storage.Azure": "*",
-    "GeekLearning.Storage.FileSystem": "*"
+    "GeekLearning.Storage.FileSystem": "*",
+    "Microsoft.NETCore.Platforms": "1.0.1",
+    "dotnet-test-xunit": "2.2.0-preview2-build1029",
+    "xunit": "2.2.0-beta2-build3300",
+    "xunit.runner.visualstudio": "2.2.0-beta2-build1149",
+    "Microsoft.Extensions.DependencyInjection": "1.0.0",
+    "Microsoft.Extensions.PlatformAbstractions": "1.0.0",
+    "Microsoft.Extensions.Configuration": "1.0.0",
+    "Microsoft.Extensions.Configuration.FileExtensions": "1.0.0",
+    "Microsoft.Extensions.Configuration.Json": "1.0.0",
+    "Microsoft.Extensions.Configuration.EnvironmentVariables": "1.0.0",
+    "Microsoft.Extensions.Options": "1.0.0",
+    "Microsoft.Extensions.Options.ConfigurationExtensions": "1.0.0"
   },
 
   "frameworks": {
     "netcoreapp1.0": {
-      "imports": [ "dotnet", "dnxcore50", "portable-net45+win8" ],
+      "imports": [ "dotnet", "portable-net45+win8" ],
       "dependencies": {
         "Microsoft.NETCore.App": {
           "type": "platform",
-          "version": "1.0.0-rc2-3002702"
+          "version": "1.0.0"
         }
+      }
+    },
+    "net451": {
+      "frameworkAssemblies": {
+      },
+      "dependencies": {
       }
     }
   }

@@ -1,0 +1,9 @@
+branches: 
+  dev(elop)?(ment)?$:
+    tag: alpha
+  features?[/-]:
+    tag: alpha.{BranchName}
+  releases?[/-]:
+    mode: ContinuousDeployment
+  hotfix(es)?[/-]:
+    mode: ContinuousDeployment
