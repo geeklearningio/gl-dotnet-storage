@@ -4,7 +4,7 @@
     {
         public PrivateFileReference(string path)
         {
-            this.Path = path;
+            this.Path = path.Replace("\\", "/").TrimStart('/');
         }
         public string Path { get; }
     }

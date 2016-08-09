@@ -8,9 +8,9 @@
         {
         }
 
-        public Dictionary<string, StorageStore> Stores { get; set; }
+        public Dictionary<string, StorageStoreOptions> Stores { get; set; }
 
-        public class StorageStore
+        public class StorageStoreOptions : IStorageStoreOptions
         {
             public string Provider { get; set; }
 

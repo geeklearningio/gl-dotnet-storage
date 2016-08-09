@@ -4,7 +4,7 @@
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.DependencyInjection.Extensions;
 
-    public static class GeekLearningFileSystemStorageExtensions
+    public static class FileSystemStorageExtensions
     {
         public static IServiceCollection AddFileSystemStorage(this IServiceCollection services, string rootPath)
         {

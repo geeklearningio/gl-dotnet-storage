@@ -15,8 +15,10 @@
         private Lazy<CloudBlobClient> client;
         private string containerName;
 
-        public AzureStore(string connectionString, string containerName)
+        public AzureStore(string storeName, string connectionString, string containerName)
         {
+            this.Name = storeName;
+
             if (string.IsNullOrWhiteSpace(connectionString))
             {
                 throw new ArgumentNullException("connectionString");
@@ -34,17 +36,37 @@
             container = new Lazy<CloudBlobContainer>(() => this.client.Value.GetContainerReference(this.containerName));
         }
 
-        private async Task<Internal.AzureFileReference> InternalGetAsync(IPrivateFileReference file)
+        public string Name { get; }
+
+        private async Task<Internal.AzureFileReference> InternalGetAsync(IPrivateFileReference file, bool withMetadata)
         {
-            return new Internal.AzureFileReference(file.Path, await this.container.Value.GetBlobReferenceFromServerAsync(file.Path));
+            var azureFile = file as Internal.AzureFileReference;
+            if (azureFile != null)
+            {
+                return azureFile;
+            }
+
+            try
+            {
+                var blob = await this.container.Value.GetBlobReferenceFromServerAsync(file.Path);
+                return new Internal.AzureFileReference(file.Path, blob);
+            }
+            catch (StorageException storageException)
+            {
+                if (storageException.RequestInformation.HttpStatusCode == 404)
+                {
+                    return null;
+                }
+                throw;
+            }
         }
 
-        public async Task<IFileReference> GetAsync(IPrivateFileReference file)
+        public async Task<IFileReference> GetAsync(IPrivateFileReference file, bool withMetadata)
         {
-            return await InternalGetAsync(file);
+            return await InternalGetAsync(file, withMetadata);
         }
 
-        public async Task<IFileReference> GetAsync(Uri uri)
+        public async Task<IFileReference> GetAsync(Uri uri, bool withMetadata)
         {
             if (uri.IsAbsoluteUri)
             {
@@ -59,66 +81,43 @@
 
         public async Task<Stream> ReadAsync(IPrivateFileReference file)
         {
-            var fileReference = await InternalGetAsync(file);
+            var fileReference = await InternalGetAsync(file, false);
             return await fileReference.ReadInMemoryAsync();
         }
 
         public async Task<byte[]> ReadAllBytesAsync(IPrivateFileReference file)
         {
-            var fileReference = await InternalGetAsync(file);
-            return (await fileReference.ReadInMemoryAsync()).ToArray();
+            var fileReference = await InternalGetAsync(file, false);
+            return await fileReference.ReadAllBytesAsync();
         }
 
         public async Task<string> ReadAllTextAsync(IPrivateFileReference file)
         {
-            var fileReference = await InternalGetAsync(file);
-            using (var reader = new StreamReader(await fileReference.CloudBlob.OpenReadAsync(AccessCondition.GenerateEmptyCondition(), new BlobRequestOptions(), new OperationContext())))
-            {
-                return await reader.ReadToEndAsync();
-            }
+            var fileReference = await InternalGetAsync(file, false);
+            return await fileReference.ReadAllTextAsync();
         }
 
-        public async Task<IFileReference> SaveAsync(Stream data, IPrivateFileReference file, string mimeType)
+        public async Task<IFileReference> SaveAsync(Stream data, IPrivateFileReference file, string contentType)
         {
             var blockBlob = this.container.Value.GetBlockBlobReference(file.Path);
             await blockBlob.UploadFromStreamAsync(data);
-            blockBlob.Properties.ContentType = mimeType;
+            blockBlob.Properties.ContentType = contentType;
             blockBlob.Properties.CacheControl = "max-age=300, must-revalidate";
             await blockBlob.SetPropertiesAsync();
             return new Internal.AzureFileReference(blockBlob);
         }
 
-        public async Task<IFileReference> SaveAsync(byte[] data, IPrivateFileReference file, string mimeType)
+        public async Task<IFileReference> SaveAsync(byte[] data, IPrivateFileReference file, string contentType)
         {
             var blockBlob = this.container.Value.GetBlockBlobReference(file.Path);
             await blockBlob.UploadFromByteArrayAsync(data, 0, data.Length);
-            blockBlob.Properties.ContentType = mimeType;
+            blockBlob.Properties.ContentType = contentType;
             blockBlob.Properties.CacheControl = "max-age=300, must-revalidate";
             await blockBlob.SetPropertiesAsync();
             return new Internal.AzureFileReference(blockBlob);
         }
 
-        //public async Task<IFileReference[]> ListAsync(string path)
-        //{
-        //    if (string.IsNullOrEmpty(path) || path == "/" || path == "\\")
-        //    {
-        //        path = "";
-        //    }
-
-        //    BlobContinuationToken continuationToken = null;
-        //    List<IListBlobItem> results = new List<IListBlobItem>();
-        //    do
-        //    {
-        //        var response = await this.container.Value.ListBlobsSegmentedAsync(path, true, BlobListingDetails.None, null, continuationToken, new BlobRequestOptions(), new OperationContext());
-        //        continuationToken = response.ContinuationToken;
-        //        results.AddRange(response.Results);
-        //    }
-        //    while (continuationToken != null);
-
-        //    return results.Select(blob => new Internal.AzureFileReference(blob)).ToArray();
-        //}
-
-        public async Task<IFileReference[]> ListAsync(string path, bool recursive)
+        public async Task<IFileReference[]> ListAsync(string path, bool recursive, bool withMetadata)
         {
             if (string.IsNullOrWhiteSpace(path))
             {
@@ -136,7 +135,7 @@
             List<IListBlobItem> results = new List<IListBlobItem>();
             do
             {
-                var response = await this.container.Value.ListBlobsSegmentedAsync(path, recursive, BlobListingDetails.None, null, continuationToken, new BlobRequestOptions(), new OperationContext());
+                var response = await this.container.Value.ListBlobsSegmentedAsync(path, recursive, withMetadata ? BlobListingDetails.Metadata : BlobListingDetails.None, null, continuationToken, new BlobRequestOptions(), new OperationContext());
                 continuationToken = response.ContinuationToken;
                 results.AddRange(response.Results);
             }
@@ -145,12 +144,25 @@
             return results.OfType<ICloudBlob>().Select(blob => new Internal.AzureFileReference(blob)).ToArray();
         }
 
-        public async Task<IFileReference[]> ListAsync(string path, string searchPattern, bool recursive)
+        public async Task<IFileReference[]> ListAsync(string path, string searchPattern, bool recursive, bool withMetadata)
         {
+            if (string.IsNullOrWhiteSpace(path))
+            {
+                path = null;
+            }
+            else
+            {
+                if (!path.EndsWith("/"))
+                {
+                    path = path + "/";
+                }
+            }
+
+            string prefix = path;
             var firstWildCard = searchPattern.IndexOf('*');
             if (firstWildCard >= 0)
             {
-                path += searchPattern.Substring(0, firstWildCard);
+                prefix += searchPattern.Substring(0, firstWildCard);
                 searchPattern = searchPattern.Substring(firstWildCard);
             }
 
@@ -162,25 +174,34 @@
             List<IListBlobItem> results = new List<IListBlobItem>();
             do
             {
-                var response = await this.container.Value.ListBlobsSegmentedAsync(path, recursive, BlobListingDetails.None, null, continuationToken, new BlobRequestOptions(), new OperationContext());
+                var response = await this.container.Value.ListBlobsSegmentedAsync(prefix, recursive, withMetadata ? BlobListingDetails.Metadata : BlobListingDetails.None, null, continuationToken, new BlobRequestOptions(), new OperationContext());
                 continuationToken = response.ContinuationToken;
                 results.AddRange(response.Results);
             }
             while (continuationToken != null);
 
-            var pathMap = results.Select(blob => new Internal.AzureFileReference(blob)).ToDictionary(x => x.Path);
-            throw new NotSupportedException();
-            //var filteredResults = matcher.Execute(
-            //    new Internal.AzureListDirectoryWrapper(path,
-            //    pathMap.Values));
+            var pathMap = results.OfType<ICloudBlob>().Select(blob => new Internal.AzureFileReference(blob)).ToDictionary(x => x.Path);
 
-            //return filteredResults.Files.Select(x => pathMap[x.Path]).ToArray();
+            var filteredResults = matcher.Execute(
+                new Internal.AzureListDirectoryWrapper(path,
+                pathMap));
+
+            return filteredResults.Files.Select(x => pathMap[path + x.Path]).ToArray();
         }
 
         public async Task DeleteAsync(IPrivateFileReference file)
         {
-            var fileReference = await InternalGetAsync(file);
+            var fileReference = await InternalGetAsync(file, false);
             await fileReference.DeleteAsync();
+        }
+
+        public async Task<IFileReference> AddMetadataAsync(IPrivateFileReference file, IDictionary<string, string> metadata)
+        {
+            var fileReference = await InternalGetAsync(file, false);
+
+            fileReference.AddMetadataAsync(metadata);
+
+            return fileReference;
         }
     }
 }

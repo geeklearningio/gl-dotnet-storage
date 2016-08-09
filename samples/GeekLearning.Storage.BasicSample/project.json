@@ -17,7 +17,8 @@
     "Microsoft.Extensions.Options.ConfigurationExtensions": "1.0.0",
     "GeekLearning.Storage": "*",
     "GeekLearning.Storage.Azure": "*",
-    "GeekLearning.Storage.FileSystem": "*"
+    "GeekLearning.Storage.FileSystem": "*",
+    "GeekLearning.Storage.FileSystem.Server": "*"
   },
 
   "tools": {

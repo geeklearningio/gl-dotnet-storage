@@ -2,14 +2,19 @@
 {
     using Storage;
     using Microsoft.Extensions.Options;
+    using System;
+    using Microsoft.Extensions.DependencyInjection.Extensions;
+    using Microsoft.Extensions.DependencyInjection;
 
     public class FileSystemStorageProvider : IStorageProvider
     {
         private IOptions<FileSystemOptions> options;
+        private IServiceProvider serviceProvider;
 
-        public FileSystemStorageProvider(IOptions<FileSystemOptions> options)
+        public FileSystemStorageProvider(IOptions<FileSystemOptions> options, IServiceProvider serviceProvider)
         {
             this.options = options;
+            this.serviceProvider = serviceProvider;
         }
 
         public string Name
@@ -20,9 +25,10 @@
             }
         }
 
-        public IStore BuildStore(StorageOptions.StorageStore storeOptions)
+        public IStore BuildStore(string storeName, IStorageStoreOptions storeOptions)
         {
-            return new FileSystemStore(storeOptions.Parameters["Path"], this.options.Value.RootPath);
+            var publicUrlProvider = this.serviceProvider.GetService<IPublicUrlProvider>();
+            return new FileSystemStore(storeName, storeOptions.Parameters["Path"], this.options.Value.RootPath, publicUrlProvider);
         }
     }
 }

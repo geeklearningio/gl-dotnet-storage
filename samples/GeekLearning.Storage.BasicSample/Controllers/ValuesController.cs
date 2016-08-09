@@ -26,10 +26,11 @@ namespace GeekLearning.Storage.BasicSample.Controllers
         }
 
         // GET api/values/5
-        [HttpGet("{id}")]
-        public string Get(int id)
+        [HttpGet("files")]
+        public async Task<IEnumerable<string>> Get(int id)
         {
-            return "value";
+            var files = await templates.Store.ListAsync("");
+            return files.Select(x => x.PublicUrl);
         }
 
         // POST api/values

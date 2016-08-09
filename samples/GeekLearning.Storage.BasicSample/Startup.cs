@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using System.Security.Cryptography;
 
 namespace GeekLearning.Storage.BasicSample
 {
@@ -31,11 +32,19 @@ namespace GeekLearning.Storage.BasicSample
         {
             // Add framework services.
             services.AddMvc();
-            
+
+            var rng = RandomNumberGenerator.Create();
+            byte[] signingKey = new byte[512];
+            rng.GetBytes(signingKey);
+
             services.AddStorage()
                 .AddAzureStorage()
-                .AddFileSystemStorage(HostingEnvironement.ContentRootPath);
-
+                .AddFileSystemStorage(HostingEnvironement.ContentRootPath)
+                .AddFileSystemStorageServer(options=> {
+                    options.SigningKey = signingKey;
+                    options.BaseUri = new Uri("http://localhost:11149/");
+                });
+            
             services.Configure<StorageOptions>(Configuration.GetSection("Storage"));
 
             services.AddScoped<TemplatesStore>();
@@ -46,6 +55,8 @@ namespace GeekLearning.Storage.BasicSample
         {
             loggerFactory.AddConsole(Configuration.GetSection("Logging"));
             loggerFactory.AddDebug();
+
+            app.UseFileSystemStorageServer();
 
             app.UseMvc();
         }

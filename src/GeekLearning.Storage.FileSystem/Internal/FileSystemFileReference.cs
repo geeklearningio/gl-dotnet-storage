@@ -10,14 +10,28 @@ namespace GeekLearning.Storage.FileSystem.Internal
     {
         private string filePath;
         private string path;
+        private IPublicUrlProvider publicUrlProvider;
+        private string storeName;
+        private FileInfo fileInfo;
 
-        public FileSystemFileReference(string filePath, string path)
+        public FileSystemFileReference(string filePath, string path, string storeName, IPublicUrlProvider publicUrlProvider)
         {
+            this.storeName = storeName;
+            this.publicUrlProvider = publicUrlProvider;
             this.filePath = filePath;
             this.path = path.Replace('\\', '/');
+            this.fileInfo = new FileInfo(this.FileSystemPath);
         }
 
         public string FileSystemPath => this.filePath;
+
+        public IDictionary<string, string> Metadata
+        {
+            get
+            {
+                throw new NotImplementedException();
+            }
+        }
 
         public string Path => this.path;
 
@@ -26,10 +40,27 @@ namespace GeekLearning.Storage.FileSystem.Internal
         {
             get
             {
+                if (publicUrlProvider != null)
+                {
+                    return publicUrlProvider.GetPublicUrl(storeName, this);
+                }
+
+                throw new NotSupportedException("There is not FileSystemServer enabled.");
+            }
+        }
+
+        public DateTimeOffset? LastModified => new DateTimeOffset(this.fileInfo.LastWriteTimeUtc, TimeZoneInfo.Local.BaseUtcOffset);
+
+        public string ContentType
+        {
+            get
+            {
                 throw new NotImplementedException();
             }
         }
 
+        public long? Length => this.fileInfo.Length;
+       
         public Task DeleteAsync()
         {
             File.Delete(this.filePath);
@@ -41,9 +72,27 @@ namespace GeekLearning.Storage.FileSystem.Internal
             throw new NotImplementedException();
         }
 
+        public Task<byte[]> ReadAllBytesAsync()
+        {
+            return Task.FromResult(File.ReadAllBytes(this.FileSystemPath));
+        }
+
+        public Task<string> ReadAllTextAsync()
+        {
+            return Task.FromResult(File.ReadAllText(this.FileSystemPath));
+        }
+
         public async Task<Stream> ReadAsync()
         {
             return File.OpenRead(this.filePath);
+        }
+
+        public async Task ReadToStreamAsync(Stream targetStream)
+        {
+            using (var file = File.Open(this.filePath, FileMode.Open, FileAccess.Read))
+            {
+                await file.CopyToAsync(targetStream);
+            }
         }
 
         public async Task UpdateAsync(Stream stream)
@@ -52,6 +101,16 @@ namespace GeekLearning.Storage.FileSystem.Internal
             {
                 await stream.CopyToAsync(file);
             }
+        }
+
+        public Task AddMetadataAsync(IDictionary<string, string> metadata)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task SaveMetadataAsync()
+        {
+            throw new NotImplementedException();
         }
     }
 }
