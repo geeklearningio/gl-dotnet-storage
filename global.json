@@ -1,4 +1,6 @@
 {
-  "sdk" : { "version": "1.0.0-preview2-003121"},
-  "projects": [ "src", "tests", "samples" ]
+  "projects": [ "src", "tests", "samples" ],
+  "sdk": {
+    "version": "1.0.0-preview2-003121"
+  }
 }
