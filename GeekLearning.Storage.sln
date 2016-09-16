@@ -5,7 +5,7 @@ VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "GeekLearning.Storage", "src\GeekLearning.Storage\GeekLearning.Storage.xproj", "{1F419C53-73C6-4460-B284-6A49AE41C596}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Samples", "Samples", "{FBAC4C17-D755-49A9-959D-18FD6B95B543}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "samples", "samples", "{FBAC4C17-D755-49A9-959D-18FD6B95B543}"
 EndProject
 Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "GeekLearning.Storage.Azure", "src\GeekLearning.Storage.Azure\GeekLearning.Storage.Azure.xproj", "{FD8BB8F9-9AF5-4C12-B962-9E08C30B01E2}"
 EndProject
@@ -13,11 +13,11 @@ Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "GeekLearning.Storage.FileSy
 EndProject
 Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "GeekLearning.Storage.BasicSample", "samples\GeekLearning.Storage.BasicSample\GeekLearning.Storage.BasicSample.xproj", "{63416AEA-DA51-4D62-B566-DB7D9BC800DC}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{2DAF5EF9-8F8E-4C51-BE2D-8D63CA143360}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{2DAF5EF9-8F8E-4C51-BE2D-8D63CA143360}"
 EndProject
 Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "GeekLearning.Integration.Test", "tests\GeekLearning.Integration.Test\GeekLearning.Integration.Test.xproj", "{590B21B0-2AFA-4329-82AD-EF180C50EB5C}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{6BEB33C6-FA17-4F58-ACC3-83C1EB28B604}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "items", "items", "{6BEB33C6-FA17-4F58-ACC3-83C1EB28B604}"
 	ProjectSection(SolutionItems) = preProject
 		.gitattributes = .gitattributes
 		.gitignore = .gitignore
@@ -28,6 +28,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 	EndProjectSection
 EndProject
 Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "GeekLearning.Storage.FileSystem.Server", "src\GeekLearning.Storage.FileSystem.Server\GeekLearning.Storage.FileSystem.Server.xproj", "{9D94CD6C-9451-449A-BED2-1C07D624A8E0}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{520AB1D3-C501-40FD-ACEB-7CC0D1F00B90}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -64,7 +66,11 @@ Global
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
+		{1F419C53-73C6-4460-B284-6A49AE41C596} = {520AB1D3-C501-40FD-ACEB-7CC0D1F00B90}
+		{FD8BB8F9-9AF5-4C12-B962-9E08C30B01E2} = {520AB1D3-C501-40FD-ACEB-7CC0D1F00B90}
+		{4A12B042-76B3-471B-9235-F653E1ABE3C0} = {520AB1D3-C501-40FD-ACEB-7CC0D1F00B90}
 		{63416AEA-DA51-4D62-B566-DB7D9BC800DC} = {FBAC4C17-D755-49A9-959D-18FD6B95B543}
 		{590B21B0-2AFA-4329-82AD-EF180C50EB5C} = {2DAF5EF9-8F8E-4C51-BE2D-8D63CA143360}
+		{9D94CD6C-9451-449A-BED2-1C07D624A8E0} = {520AB1D3-C501-40FD-ACEB-7CC0D1F00B90}
 	EndGlobalSection
 EndGlobal
