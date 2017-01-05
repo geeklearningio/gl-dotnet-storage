@@ -4,10 +4,6 @@
 
     public class StorageOptions
     {
-        public StorageOptions()
-        {
-        }
-
         public Dictionary<string, StorageStoreOptions> Stores { get; set; }
 
         public class StorageStoreOptions : IStorageStoreOptions

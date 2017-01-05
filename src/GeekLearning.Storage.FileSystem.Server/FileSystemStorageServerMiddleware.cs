@@ -1,14 +1,10 @@
-﻿
-namespace GeekLearning.Storage.FileSystem.Server
+﻿namespace GeekLearning.Storage.FileSystem.Server
 {
-    using Microsoft.Extensions.Options;
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Threading.Tasks;
     using Microsoft.AspNetCore.Http;
-    using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Extensions.Logging;
+    using Microsoft.Extensions.Options;
+    using System.Threading.Tasks;
 
     public class FileSystemStorageServerMiddleware
     {
@@ -49,8 +45,7 @@ namespace GeekLearning.Storage.FileSystem.Server
                     }
 
                     IStore store = storageFactory.GetStore(storeName, storeOptions);
-                    //if (storageFactory.TryGetStore(storeName, out store, "FileSystem"))
-                    //{
+
                     var file = await store.GetAsync(context.Request.Path.Value.Substring(subPathStart + 1));
                     if (file != null)
                     {
@@ -59,7 +54,6 @@ namespace GeekLearning.Storage.FileSystem.Server
                         await file.ReadToStreamAsync(context.Response.Body);
                         return;
                     }
-                    //}
                 }
             }
 

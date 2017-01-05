@@ -7,8 +7,6 @@
 
     public interface IFileReference : IPrivateFileReference
     {
-        string Path { get; }
-
         string PublicUrl { get; }
 
         DateTimeOffset? LastModified { get; }

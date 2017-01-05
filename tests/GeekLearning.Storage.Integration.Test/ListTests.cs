@@ -1,18 +1,16 @@
-﻿namespace GeekLearning.Integration.Test
+﻿namespace GeekLearning.Storage.Integration.Test
 {
-    using System;
-    using System.Collections.Generic;
+    using Microsoft.Extensions.DependencyInjection;
+    using Storage;
     using System.Linq;
     using System.Threading.Tasks;
     using Xunit;
-    using GeekLearning.Storage;
-    using Microsoft.Extensions.DependencyInjection;
 
     [Collection(nameof(IntegrationCollection))]
     [Trait("Operation", "List"), Trait("Kind", "Integration")]
     public class ListTests
     {
-        StoresFixture storeFixture;
+        private StoresFixture storeFixture;
 
         public ListTests(StoresFixture fixture)
         {

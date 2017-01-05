@@ -4,7 +4,7 @@
 
     public class AzureStorageManagerOptions
     {
-        public Dictionary<string,SubStore> SubStores { get; set; }
+        public Dictionary<string, SubStore> SubStores { get; set; }
 
         public class SubStore
         {

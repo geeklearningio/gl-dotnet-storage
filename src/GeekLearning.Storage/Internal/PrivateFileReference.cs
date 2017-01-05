@@ -6,6 +6,7 @@
         {
             this.Path = path.Replace("\\", "/").TrimStart('/');
         }
+
         public string Path { get; }
     }
 }
