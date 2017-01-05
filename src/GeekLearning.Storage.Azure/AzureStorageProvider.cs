@@ -4,13 +4,7 @@
 
     public class AzureStorageProvider : IStorageProvider
     {
-        public string Name
-        {
-            get
-            {
-                return "Azure";
-            }
-        }
+        public string Name => "Azure";
 
         public IStore BuildStore(string storeName, IStorageStoreOptions storeOptions)
         {

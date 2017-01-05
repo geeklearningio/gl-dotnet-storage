@@ -78,7 +78,6 @@
             }
         }
 
-
         public async Task<Stream> ReadAsync(IPrivateFileReference file)
         {
             var fileReference = await InternalGetAsync(file, false);
@@ -133,6 +132,7 @@
 
             BlobContinuationToken continuationToken = null;
             List<IListBlobItem> results = new List<IListBlobItem>();
+
             do
             {
                 var response = await this.container.Value.ListBlobsSegmentedAsync(path, recursive, withMetadata ? BlobListingDetails.Metadata : BlobListingDetails.None, null, continuationToken, new BlobRequestOptions(), new OperationContext());
@@ -172,6 +172,7 @@
             var operationContext = new OperationContext();
             BlobContinuationToken continuationToken = null;
             List<IListBlobItem> results = new List<IListBlobItem>();
+
             do
             {
                 var response = await this.container.Value.ListBlobsSegmentedAsync(prefix, recursive, withMetadata ? BlobListingDetails.Metadata : BlobListingDetails.None, null, continuationToken, new BlobRequestOptions(), new OperationContext());
@@ -199,7 +200,7 @@
         {
             var fileReference = await InternalGetAsync(file, false);
 
-            fileReference.AddMetadataAsync(metadata);
+            await fileReference.AddMetadataAsync(metadata);
 
             return fileReference;
         }

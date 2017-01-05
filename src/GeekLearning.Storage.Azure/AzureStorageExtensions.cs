@@ -6,7 +6,6 @@
 
     public static class AzureStorageExtensions
     {
-
         public static IServiceCollection AddAzureStorage(this IServiceCollection services)
         {
             services.TryAddEnumerable(ServiceDescriptor.Transient<IStorageProvider, AzureStorageProvider>());

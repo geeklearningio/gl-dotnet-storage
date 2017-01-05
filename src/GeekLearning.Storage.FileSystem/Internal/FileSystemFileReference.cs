@@ -1,11 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
-
-namespace GeekLearning.Storage.FileSystem.Internal
+﻿namespace GeekLearning.Storage.FileSystem.Internal
 {
+    using System;
+    using System.Collections.Generic;
+    using System.IO;
+    using System.Threading.Tasks;
+
     public class FileSystemFileReference : IFileReference
     {
         private string filePath;
@@ -60,7 +59,7 @@ namespace GeekLearning.Storage.FileSystem.Internal
         }
 
         public long? Length => this.fileInfo.Length;
-       
+
         public Task DeleteAsync()
         {
             File.Delete(this.filePath);
@@ -82,9 +81,10 @@ namespace GeekLearning.Storage.FileSystem.Internal
             return Task.FromResult(File.ReadAllText(this.FileSystemPath));
         }
 
-        public async Task<Stream> ReadAsync()
+        public Task<Stream> ReadAsync()
         {
-            return File.OpenRead(this.filePath);
+            Stream stream = File.OpenRead(this.filePath);
+            return Task.FromResult(stream);
         }
 
         public async Task ReadToStreamAsync(Stream targetStream)

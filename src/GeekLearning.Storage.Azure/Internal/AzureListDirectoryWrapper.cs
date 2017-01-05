@@ -1,12 +1,11 @@
-﻿using Microsoft.Extensions.FileSystemGlobbing.Abstractions;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.WindowsAzure.Storage.Blob;
-
-namespace GeekLearning.Storage.Azure.Internal
+﻿namespace GeekLearning.Storage.Azure.Internal
 {
+    using Microsoft.Extensions.FileSystemGlobbing.Abstractions;
+    using Microsoft.WindowsAzure.Storage.Blob;
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+
     public class AzureListDirectoryWrapper : DirectoryInfoBase
     {
         private string name;
@@ -42,26 +41,11 @@ namespace GeekLearning.Storage.Azure.Internal
             this.fullName = blobDirectory.Prefix;
         }
 
-        public override string FullName
-        {
-            get
-            {
-                return fullName;
-            }
-        }
+        public override string FullName => this.fullName;
 
-        public override string Name
-        {
-            get
-            {
-                return name;
-            }
-        }
+        public override string Name => this.name;
 
-        public override DirectoryInfoBase ParentDirectory
-        {
-            get;
-        }
+        public override DirectoryInfoBase ParentDirectory { get; }
 
         public override IEnumerable<FileSystemInfoBase> EnumerateFileSystemInfos()
         {

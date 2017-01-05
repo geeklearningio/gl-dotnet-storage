@@ -1,25 +1,27 @@
 {
-  "version": "1.0.0-*",
-  "description": "GeekLearning.Storage.Azure Class Library",
+  "version": "0.0.1-*",
+  "description": "Azure Storage Provider for Geek Learning Storage Abstractions.",
   "authors": [ "Geek Learning", "Cyprien Autexier", "Adrien Siffermann" ],
   "packOptions": {
-    "tags": [ ],
+    "tags": [],
     "projectUrl": "",
     "licenseUrl": ""
   },
 
   "dependencies": {
-    "NETStandard.Library": "1.6.0",
-    "Microsoft.Extensions.DependencyInjection.Abstractions": "1.0.0",
-    "Microsoft.Extensions.Options": "1.0.0",
-    "WindowsAzure.Storage": "7.2.1",
-    "GeekLearning.Storage": "*",
-    "Microsoft.Extensions.FileSystemGlobbing": "1.0.0"
+    "NETStandard.Library": "1.6.1",
+    "Microsoft.Extensions.DependencyInjection.Abstractions": "1.1.0",
+    "Microsoft.Extensions.Options": "1.1.0",
+    "Microsoft.Extensions.FileSystemGlobbing": "1.1.0",
+    
+    "WindowsAzure.Storage": "8.0.0",
+
+    "GeekLearning.Storage": "*"
   },
 
   "frameworks": {
-    "net451": { },
-    "netstandard1.5": {
+    "net45": {},
+    "netstandard1.3": {
       "imports": [
         "portable-net45+win8"
       ]

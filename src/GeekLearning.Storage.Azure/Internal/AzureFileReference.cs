@@ -1,13 +1,12 @@
-﻿using Microsoft.WindowsAzure.Storage;
-using Microsoft.WindowsAzure.Storage.Blob;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
-
-namespace GeekLearning.Storage.Azure.Internal
+﻿namespace GeekLearning.Storage.Azure.Internal
 {
+    using Microsoft.WindowsAzure.Storage;
+    using Microsoft.WindowsAzure.Storage.Blob;
+    using System;
+    using System.Collections.Generic;
+    using System.IO;
+    using System.Threading.Tasks;
+
     public class AzureFileReference : IFileReference
     {
         private ICloudBlob cloudBlob;
