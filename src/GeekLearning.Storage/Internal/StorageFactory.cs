@@ -3,7 +3,6 @@
     using Microsoft.Extensions.Options;
     using System.Collections.Generic;
     using System.Linq;
-    using System;
 
     public class StorageFactory : IStorageFactory
     {
@@ -32,9 +31,10 @@
             StorageOptions.StorageStoreOptions conf;
             if (this.options.Value.Stores.TryGetValue(storeName, out conf))
             {
-                store= this.storageProviders.FirstOrDefault(x => x.Name == conf.Provider).BuildStore(storeName, conf);
+                store = this.storageProviders.FirstOrDefault(x => x.Name == conf.Provider).BuildStore(storeName, conf);
                 return true;
             }
+
             store = null;
             return false;
         }
@@ -50,6 +50,7 @@
                     return true;
                 }
             }
+
             store = null;
             return false;
         }

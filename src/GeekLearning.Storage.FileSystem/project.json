@@ -1,28 +1,24 @@
 {
-  "version": "1.0.0-*",
-  "description": "GeekLearning.Storage.FileSystem Class Library",
+  "version": "0.0.1-*",
+  "description": "FileSystem Provider for Geek Learning Storage Abstractions.",
   "authors": [ "Geek Learning", "Cyprien Autexier", "Adrien Siffermann" ],
   "packOptions": {
-    "tags": [ ],
+    "tags": [],
     "projectUrl": "",
     "licenseUrl": ""
   },
 
   "dependencies": {
-    "NETStandard.Library": "1.6.0",
-    "Microsoft.Extensions.DependencyInjection.Abstractions": "1.0.0",
-    "Microsoft.Extensions.Options": "1.0.0",
-    "GeekLearning.Storage": "*",
-    "Microsoft.Extensions.FileSystemGlobbing": "1.0.0"
+    "NETStandard.Library": "1.6.1",
+    "Microsoft.Extensions.DependencyInjection.Abstractions": "1.1.0",
+    "Microsoft.Extensions.Options": "1.1.0",
+    "Microsoft.Extensions.FileSystemGlobbing": "1.1.0",
+
+    "GeekLearning.Storage": "*"
   },
 
   "frameworks": {
-    "net451": { },
-    "netstandard1.5": {
-      "imports": [
-        "dotnet5.6",
-        "portable-net45+win8"
-      ]
-    }
+    "net45": {},
+    "netstandard1.3": {}
   }
 }

@@ -1,14 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using System.Text;
-
-// For more information on enabling Web API for empty projects, visit http://go.microsoft.com/fwlink/?LinkID=397860
-
-namespace GeekLearning.Storage.BasicSample.Controllers
+﻿namespace GeekLearning.Storage.BasicSample.Controllers
 {
+    using Microsoft.AspNetCore.Mvc;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Text;
+    using System.Threading.Tasks;
+
     [Route("api/[controller]")]
     public class SampleController : Controller
     {
@@ -19,7 +16,6 @@ namespace GeekLearning.Storage.BasicSample.Controllers
             this.sharedAssets = storageFactory.GetStore("SharedAssets");
         }
 
-        // GET: api/values
         [HttpGet]
         public async Task<IEnumerable<string>> Get()
         {
@@ -27,7 +23,6 @@ namespace GeekLearning.Storage.BasicSample.Controllers
             return summaries.Select(x => x.Path);
         }
 
-        // GET api/values/5
         [HttpGet]
         public async Task<string> Get(string path)
         {
@@ -35,14 +30,12 @@ namespace GeekLearning.Storage.BasicSample.Controllers
             return await summary.ReadAllTextAsync();
         }
 
-        // PUT api/values/5
         [HttpPut()]
         public async Task Put(string path, [FromBody]string value)
         {
             await sharedAssets.SaveAsync(Encoding.UTF8.GetBytes(value), path, "text/plain");
         }
 
-        // DELETE api/values/5
         [HttpDelete()]
         public async Task Delete(string path)
         {

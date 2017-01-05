@@ -30,6 +30,7 @@
                 this.absolutePath = Path.Combine(rootPath, path);
             }
         }
+
         public string Name { get; }
 
         private Internal.FileSystemFileReference InternalGetAsync(IPrivateFileReference file)
@@ -39,6 +40,7 @@
             {
                 return reference;
             }
+
             return null;
         }
 
@@ -48,12 +50,13 @@
             return new Internal.FileSystemFileReference(fullPath, file.Path, this.Name, this.publicUrlProvider);
         }
 
-        public async Task<IFileReference> GetAsync(IPrivateFileReference file, bool withMetadata)
+        public Task<IFileReference> GetAsync(IPrivateFileReference file, bool withMetadata)
         {
-            return InternalGetAsync(file);
+            IFileReference fileReference = this.InternalGetAsync(file);
+            return Task.FromResult(fileReference);
         }
 
-        public async Task<IFileReference> GetAsync(Uri uri, bool withMetadata)
+        public Task<IFileReference> GetAsync(Uri uri, bool withMetadata)
         {
             throw new NotImplementedException();
         }

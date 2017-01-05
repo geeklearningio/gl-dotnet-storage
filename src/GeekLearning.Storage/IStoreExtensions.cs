@@ -1,12 +1,7 @@
 ﻿namespace GeekLearning.Storage
 {
-    using GeekLearning.Storage;
-    using System;
-    using System.Collections.Generic;
     using System.IO;
-    using System.Linq;
     using System.Threading.Tasks;
-
 
     public static class IStoreExtensions
     {

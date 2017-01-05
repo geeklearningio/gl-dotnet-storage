@@ -1,16 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using System.Security.Cryptography;
-
-namespace GeekLearning.Storage.BasicSample
+﻿namespace GeekLearning.Storage.BasicSample
 {
+    using Microsoft.AspNetCore.Builder;
+    using Microsoft.AspNetCore.Hosting;
+    using Microsoft.Extensions.Configuration;
+    using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Extensions.Logging;
+    using System;
+    using System.Security.Cryptography;
+
     public class Startup
     {
         public Startup(IHostingEnvironment env)
@@ -25,12 +22,11 @@ namespace GeekLearning.Storage.BasicSample
         }
 
         public IConfigurationRoot Configuration { get; }
+
         public IHostingEnvironment HostingEnvironement { get; }
 
-        // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            // Add framework services.
             services.AddMvc();
 
             var rng = RandomNumberGenerator.Create();
@@ -50,7 +46,6 @@ namespace GeekLearning.Storage.BasicSample
             services.AddScoped<TemplatesStore>();
         }
 
-        // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
         {
             loggerFactory.AddConsole(Configuration.GetSection("Logging"));
