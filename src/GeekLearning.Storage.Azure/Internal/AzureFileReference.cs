@@ -11,6 +11,12 @@
     {
         private ICloudBlob cloudBlob;
 
+        public AzureFileReference(string path, ICloudBlob cloudBlob)
+        {
+            this.Path = path;
+            this.cloudBlob = cloudBlob;
+        }
+
         public AzureFileReference(IListBlobItem blobItem)
            : this(blobItem as ICloudBlob)
         {
@@ -21,17 +27,12 @@
         {
         }
 
-        public AzureFileReference(string path, ICloudBlob cloudBlob)
-        {
-            this.Path = path;
-            this.cloudBlob = cloudBlob;
-        }
-
         public AzureFileReference(ICloudBlob cloudBlob) :
             this(cloudBlob.Name, cloudBlob)
         {
-
         }
+
+        public string Path { get; }
 
         public DateTimeOffset? LastModified => this.cloudBlob.Properties?.LastModified;
 
@@ -39,7 +40,7 @@
 
         public long? Length => this.cloudBlob.Properties?.Length;
 
-        public string Path { get; }
+        public string ETag => this.cloudBlob.Properties?.ETag;
 
         public string PublicUrl => cloudBlob.Uri.ToString();
 

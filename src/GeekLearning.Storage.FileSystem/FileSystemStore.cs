@@ -33,23 +33,6 @@
 
         public string Name { get; }
 
-        private Internal.FileSystemFileReference InternalGetAsync(IPrivateFileReference file)
-        {
-            var reference = InternalGetOrCreateAsync(file);
-            if (File.Exists(reference.FileSystemPath))
-            {
-                return reference;
-            }
-
-            return null;
-        }
-
-        private Internal.FileSystemFileReference InternalGetOrCreateAsync(IPrivateFileReference file)
-        {
-            var fullPath = Path.Combine(this.absolutePath, file.Path);
-            return new Internal.FileSystemFileReference(fullPath, file.Path, this.Name, this.publicUrlProvider);
-        }
-
         public Task<IFileReference> GetAsync(IPrivateFileReference file, bool withMetadata)
         {
             IFileReference fileReference = this.InternalGetAsync(file);
@@ -138,6 +121,11 @@
             return Task.FromResult((IFileReference)fileReference);
         }
 
+        public Task<IFileReference> AddMetadataAsync(IPrivateFileReference file, IDictionary<string, string> metadata)
+        {
+            throw new NotImplementedException();
+        }
+
         private void EnsurePathExists(string path)
         {
             var directoryPath = Path.GetDirectoryName(path);
@@ -147,9 +135,21 @@
             }
         }
 
-        public Task<IFileReference> AddMetadataAsync(IPrivateFileReference file, IDictionary<string, string> metadata)
+        private Internal.FileSystemFileReference InternalGetAsync(IPrivateFileReference file)
         {
-            throw new NotImplementedException();
+            var reference = InternalGetOrCreateAsync(file);
+            if (File.Exists(reference.FileSystemPath))
+            {
+                return reference;
+            }
+
+            return null;
+        }
+
+        private Internal.FileSystemFileReference InternalGetOrCreateAsync(IPrivateFileReference file)
+        {
+            var fullPath = Path.Combine(this.absolutePath, file.Path);
+            return new Internal.FileSystemFileReference(fullPath, file.Path, this.Name, this.publicUrlProvider);
         }
     }
 }

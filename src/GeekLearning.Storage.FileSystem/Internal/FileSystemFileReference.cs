@@ -7,8 +7,6 @@
 
     public class FileSystemFileReference : IFileReference
     {
-        private string filePath;
-        private string path;
         private IPublicUrlProvider publicUrlProvider;
         private string storeName;
         private FileInfo fileInfo;
@@ -17,12 +15,14 @@
         {
             this.storeName = storeName;
             this.publicUrlProvider = publicUrlProvider;
-            this.filePath = filePath;
-            this.path = path.Replace('\\', '/');
+            this.FileSystemPath = filePath;
+            this.Path = path.Replace('\\', '/');
             this.fileInfo = new FileInfo(this.FileSystemPath);
         }
 
-        public string FileSystemPath => this.filePath;
+        public string FileSystemPath { get; }
+
+        public string Path { get; }
 
         public IDictionary<string, string> Metadata
         {
@@ -32,8 +32,13 @@
             }
         }
 
-        public string Path => this.path;
-
+        public string ETag
+        {
+            get
+            {
+                throw new NotImplementedException();
+            }
+        }
 
         public string PublicUrl
         {
@@ -62,7 +67,7 @@
 
         public Task DeleteAsync()
         {
-            File.Delete(this.filePath);
+            File.Delete(this.FileSystemPath);
             return Task.FromResult(true);
         }
 
@@ -83,13 +88,13 @@
 
         public Task<Stream> ReadAsync()
         {
-            Stream stream = File.OpenRead(this.filePath);
+            Stream stream = File.OpenRead(this.FileSystemPath);
             return Task.FromResult(stream);
         }
 
         public async Task ReadToStreamAsync(Stream targetStream)
         {
-            using (var file = File.Open(this.filePath, FileMode.Open, FileAccess.Read))
+            using (var file = File.Open(this.FileSystemPath, FileMode.Open, FileAccess.Read))
             {
                 await file.CopyToAsync(targetStream);
             }
@@ -97,7 +102,7 @@
 
         public async Task UpdateAsync(Stream stream)
         {
-            using (var file = File.Open(this.filePath, FileMode.Truncate, FileAccess.Write))
+            using (var file = File.Open(this.FileSystemPath, FileMode.Truncate, FileAccess.Write))
             {
                 await stream.CopyToAsync(file);
             }

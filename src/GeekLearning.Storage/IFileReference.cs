@@ -15,6 +15,8 @@
 
         long? Length { get; }
 
+        string ETag { get; }
+
         IDictionary<string, string> Metadata { get; }
 
         Task ReadToStreamAsync(Stream targetStream);
