@@ -15,12 +15,16 @@
 
         public DateTimeOffset? LastModified => this.cloudBlob.Properties.LastModified;
 
-        public string ContentType => this.cloudBlob.Properties.ContentType;
+        public string ContentType
+        {
+            get { return this.cloudBlob.Properties.ContentType; }
+            set { this.cloudBlob.Properties.ContentType = value; }
+        }
 
         public long Length => this.cloudBlob.Properties.Length;
 
         public string ETag => this.cloudBlob.Properties.ETag;
 
-        public IDictionary<string, string> Metadata => this.cloudBlob.Metadata;        
+        public IDictionary<string, string> Metadata => this.cloudBlob.Metadata;
     }
 }

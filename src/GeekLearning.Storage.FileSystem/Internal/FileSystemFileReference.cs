@@ -1,38 +1,48 @@
 ﻿namespace GeekLearning.Storage.FileSystem.Internal
 {
     using System;
-    using System.Collections.Generic;
     using System.IO;
     using System.Threading.Tasks;
 
     public class FileSystemFileReference : IFileReference
     {
-        private IPublicUrlProvider publicUrlProvider;
-        private string storeName;
-        private FileInfo fileInfo;
-        private Lazy<IFileProperties> propertiesLazy;
+        private readonly string storeName;
+        private readonly Lazy<IFileProperties> propertiesLazy;
+        private readonly Lazy<string> publicUrlLazy;
+        private readonly IExtendedPropertiesProvider extendedPropertiesProvider;
 
         public FileSystemFileReference(
-            string filePath, 
-            string path, 
-            string storeName, 
+            string filePath,
+            string path,
+            string storeName,
+            bool withMetadata,
+            FileExtendedProperties extendedProperties,
             IPublicUrlProvider publicUrlProvider,
-            bool withMetadata = false)
+            IExtendedPropertiesProvider extendedPropertiesProvider)
         {
-            this.storeName = storeName;
-            this.publicUrlProvider = publicUrlProvider;
             this.FileSystemPath = filePath;
             this.Path = path.Replace('\\', '/');
-            this.fileInfo = new FileInfo(this.FileSystemPath);
+            this.storeName = storeName;
+            this.extendedPropertiesProvider = extendedPropertiesProvider;
 
             this.propertiesLazy = new Lazy<IFileProperties>(() =>
             {
                 if (withMetadata)
                 {
-                    return new FileSystemFileProperties(this.fileInfo);
+                    return new FileSystemFileProperties(this.FileSystemPath, extendedProperties);
                 }
 
                 throw new InvalidOperationException("Metadata are not loaded, please use withMetadata option");
+            });
+
+            this.publicUrlLazy = new Lazy<string>(() =>
+            {
+                if (publicUrlProvider != null)
+                {
+                    return publicUrlProvider.GetPublicUrl(storeName, this);
+                }
+
+                throw new InvalidOperationException("There is not FileSystemServer enabled.");
             });
         }
 
@@ -40,18 +50,7 @@
 
         public string Path { get; }
 
-        public string PublicUrl
-        {
-            get
-            {
-                if (publicUrlProvider != null)
-                {
-                    return publicUrlProvider.GetPublicUrl(storeName, this);
-                }
-
-                throw new NotSupportedException("There is not FileSystemServer enabled.");
-            }
-        }
+        public string PublicUrl => this.publicUrlLazy.Value;
 
         public IFileProperties Properties => this.propertiesLazy.Value;
 
@@ -100,7 +99,15 @@
 
         public Task SavePropertiesAsync()
         {
-            throw new NotImplementedException();
+            if (this.extendedPropertiesProvider == null)
+            {
+                throw new InvalidOperationException("There is no FileSystem extended properties provider.");
+            }
+
+            return this.extendedPropertiesProvider.SaveExtendedPropertiesAsync(
+                this.storeName,
+                this,
+                (this.Properties as FileSystemFileProperties).ExtendedProperties);
         }
     }
 }

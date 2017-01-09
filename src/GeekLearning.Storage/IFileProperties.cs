@@ -9,7 +9,7 @@
 
         long Length { get; }
 
-        string ContentType { get; }
+        string ContentType { get; set; }
 
         string ETag { get; }
 

@@ -2,6 +2,7 @@
 {
     using Microsoft.WindowsAzure.Storage;
     using Microsoft.WindowsAzure.Storage.Blob;
+    using Microsoft.WindowsAzure.Storage.Core;
     using System;
     using System.Collections.Generic;
     using System.IO;
@@ -32,54 +33,6 @@
         }
 
         public string Name { get; }
-
-        public async Task<IFileReference> GetAsync(IPrivateFileReference file, bool withMetadata)
-        {
-            return await this.InternalGetAsync(file, withMetadata);
-        }
-
-        public async Task<IFileReference> GetAsync(Uri uri, bool withMetadata)
-        {
-            return await this.InternalGetAsync(uri, withMetadata);
-        }
-
-        public async Task<Stream> ReadAsync(IPrivateFileReference file)
-        {
-            var fileReference = await this.InternalGetAsync(file);
-            return await fileReference.ReadInMemoryAsync();
-        }
-
-        public async Task<byte[]> ReadAllBytesAsync(IPrivateFileReference file)
-        {
-            var fileReference = await this.InternalGetAsync(file);
-            return await fileReference.ReadAllBytesAsync();
-        }
-
-        public async Task<string> ReadAllTextAsync(IPrivateFileReference file)
-        {
-            var fileReference = await this.InternalGetAsync(file);
-            return await fileReference.ReadAllTextAsync();
-        }
-
-        public async Task<IFileReference> SaveAsync(Stream data, IPrivateFileReference file, string contentType)
-        {
-            var blockBlob = this.container.Value.GetBlockBlobReference(file.Path);
-            await blockBlob.UploadFromStreamAsync(data);
-            blockBlob.Properties.ContentType = contentType;
-            blockBlob.Properties.CacheControl = "max-age=300, must-revalidate";
-            await blockBlob.SetPropertiesAsync();
-            return new Internal.AzureFileReference(blockBlob, withMetadata: true);
-        }
-
-        public async Task<IFileReference> SaveAsync(byte[] data, IPrivateFileReference file, string contentType)
-        {
-            var blockBlob = this.container.Value.GetBlockBlobReference(file.Path);
-            await blockBlob.UploadFromByteArrayAsync(data, 0, data.Length);
-            blockBlob.Properties.ContentType = contentType;
-            blockBlob.Properties.CacheControl = "max-age=300, must-revalidate";
-            await blockBlob.SetPropertiesAsync();
-            return new Internal.AzureFileReference(blockBlob, withMetadata: true);
-        }
 
         public async Task<IFileReference[]> ListAsync(string path, bool recursive, bool withMetadata)
         {
@@ -155,10 +108,56 @@
             return filteredResults.Files.Select(x => pathMap[path + x.Path]).ToArray();
         }
 
+        public async Task<IFileReference> GetAsync(IPrivateFileReference file, bool withMetadata)
+        {
+            return await this.InternalGetAsync(file, withMetadata);
+        }
+
+        public async Task<IFileReference> GetAsync(Uri uri, bool withMetadata)
+        {
+            return await this.InternalGetAsync(uri, withMetadata);
+        }
+
         public async Task DeleteAsync(IPrivateFileReference file)
         {
             var fileReference = await this.InternalGetAsync(file);
             await fileReference.DeleteAsync();
+        }
+
+        public async Task<Stream> ReadAsync(IPrivateFileReference file)
+        {
+            var fileReference = await this.InternalGetAsync(file);
+            return await fileReference.ReadInMemoryAsync();
+        }
+
+        public async Task<byte[]> ReadAllBytesAsync(IPrivateFileReference file)
+        {
+            var fileReference = await this.InternalGetAsync(file);
+            return await fileReference.ReadAllBytesAsync();
+        }
+
+        public async Task<string> ReadAllTextAsync(IPrivateFileReference file)
+        {
+            var fileReference = await this.InternalGetAsync(file);
+            return await fileReference.ReadAllTextAsync();
+        }
+
+        public async Task<IFileReference> SaveAsync(byte[] data, IPrivateFileReference file, string contentType)
+        {
+            using (var stream = new SyncMemoryStream(data, 0, data.Length))
+            {
+                return await this.SaveAsync(stream, file, contentType);
+            }
+        }
+
+        public async Task<IFileReference> SaveAsync(Stream data, IPrivateFileReference file, string contentType)
+        {
+            var blockBlob = this.container.Value.GetBlockBlobReference(file.Path);
+            await blockBlob.UploadFromStreamAsync(data);
+            blockBlob.Properties.ContentType = contentType;
+            blockBlob.Properties.CacheControl = "max-age=300, must-revalidate";
+            await blockBlob.SetPropertiesAsync();
+            return new Internal.AzureFileReference(blockBlob, withMetadata: true);
         }
 
         private async Task<Internal.AzureFileReference> InternalGetAsync(IPrivateFileReference file, bool withMetadata = false)

@@ -8,14 +8,12 @@
 
     public class FileSystemStore : IStore
     {
-        private string absolutePath;
-        private IPublicUrlProvider publicUrlProvider;
+        private readonly string absolutePath;
+        private readonly IPublicUrlProvider publicUrlProvider;
+        private readonly IExtendedPropertiesProvider extendedPropertiesProvider;
 
-        public FileSystemStore(string storeName, string path, string rootPath, IPublicUrlProvider publicUrlProvider)
+        public FileSystemStore(string storeName, string path, string rootPath, IPublicUrlProvider publicUrlProvider, IExtendedPropertiesProvider extendedPropertiesProvider)
         {
-            this.publicUrlProvider = publicUrlProvider;
-            this.Name = storeName;
-
             if (string.IsNullOrEmpty(path))
             {
                 throw new ArgumentNullException("path");
@@ -29,96 +27,161 @@
             {
                 this.absolutePath = Path.Combine(rootPath, path);
             }
+
+            this.Name = storeName;
+            this.publicUrlProvider = publicUrlProvider;
+            this.extendedPropertiesProvider = extendedPropertiesProvider;
         }
 
         public string Name { get; }
 
-        public Task<IFileReference> GetAsync(IPrivateFileReference file, bool withMetadata)
-        {
-            IFileReference fileReference = this.InternalGetAsync(file);
-            return Task.FromResult(fileReference);
-        }
-
-        public Task<IFileReference> GetAsync(Uri uri, bool withMetadata)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task DeleteAsync(IPrivateFileReference file)
-        {
-            var fileReference = InternalGetAsync(file);
-            return fileReference.DeleteAsync();
-        }
-
-        public Task<IFileReference[]> ListAsync(string path, bool recursive, bool withMetadata)
+        public async Task<IFileReference[]> ListAsync(string path, bool recursive, bool withMetadata)
         {
             var directoryPath = (string.IsNullOrEmpty(path) || path == "/" || path == "\\") ? this.absolutePath : Path.Combine(this.absolutePath, path);
-            if (!Directory.Exists(directoryPath))
+
+            var result = new List<IFileReference>();
+            if (Directory.Exists(directoryPath))
             {
-                return Task.FromResult(new IFileReference[0]);
+                var allResultPaths = Directory.GetFiles(directoryPath)
+                    .Select(fp => fp.Replace(this.absolutePath, "").Trim('/', '\\'))
+                    .ToList();
+
+                foreach (var resultPath in allResultPaths)
+                {
+                    result.Add(await this.InternalGetAsync(resultPath, withMetadata));
+                }
             }
 
-            return Task.FromResult(Directory.GetFiles(directoryPath)
-                .Select(fullPath =>
-                    (IFileReference)new Internal.FileSystemFileReference(fullPath, fullPath.Replace(this.absolutePath, "")
-                    .Trim('/', '\\'), this.Name, this.publicUrlProvider))
-                .ToArray());
+            return result.ToArray();
         }
 
-        public Task<IFileReference[]> ListAsync(string path, string searchPattern, bool recursive, bool withMetadata)
+        public async Task<IFileReference[]> ListAsync(string path, string searchPattern, bool recursive, bool withMetadata)
         {
             var directoryPath = (string.IsNullOrEmpty(path) || path == "/" || path == "\\") ? this.absolutePath : Path.Combine(this.absolutePath, path);
-            if (!Directory.Exists(directoryPath))
+
+            var result = new List<IFileReference>();
+            if (Directory.Exists(directoryPath))
             {
-                return Task.FromResult(new IFileReference[0]);
+                var matcher = new Microsoft.Extensions.FileSystemGlobbing.Matcher(StringComparison.Ordinal);
+                matcher.AddInclude(searchPattern);
+
+                var matches = matcher.Execute(new Microsoft.Extensions.FileSystemGlobbing.Abstractions.DirectoryInfoWrapper(new DirectoryInfo(directoryPath)));
+                var allResultPaths = matches.Files
+                    .Select(match => Path.Combine(path, match.Path).Trim('/', '\\'))
+                    .ToList();
+
+                foreach (var resultPath in allResultPaths)
+                {
+                    result.Add(await this.InternalGetAsync(resultPath, withMetadata));
+                }
             }
 
-            Microsoft.Extensions.FileSystemGlobbing.Matcher matcher = new Microsoft.Extensions.FileSystemGlobbing.Matcher(StringComparison.Ordinal);
-            matcher.AddInclude(searchPattern);
-
-            var results = matcher.Execute(new Microsoft.Extensions.FileSystemGlobbing.Abstractions.DirectoryInfoWrapper(new DirectoryInfo(directoryPath)));
-
-            return Task.FromResult(results.Files
-                .Select(match => (IFileReference)new Internal.FileSystemFileReference(Path.Combine(directoryPath, match.Path), Path.Combine(path, match.Path).Trim('/', '\\'), this.Name, this.publicUrlProvider))
-                .ToArray());
+            return result.ToArray();
         }
 
-        public Task<Stream> ReadAsync(IPrivateFileReference file)
+        public async Task<IFileReference> GetAsync(IPrivateFileReference file, bool withMetadata)
         {
-            var fileReference = InternalGetAsync(file);
-            return fileReference.ReadAsync();
+            return await this.InternalGetAsync(file, withMetadata);
         }
 
-        public Task<byte[]> ReadAllBytesAsync(IPrivateFileReference file)
+        public async Task<IFileReference> GetAsync(Uri uri, bool withMetadata)
         {
-            var fileReference = InternalGetAsync(file);
-            return fileReference.ReadAllBytesAsync();
+            if (uri.IsAbsoluteUri)
+            {
+                throw new InvalidOperationException("Cannot resolve an absolute URI with a FileSystem store.");
+            }
+
+            return await this.InternalGetAsync(uri.ToString(), withMetadata);
         }
 
-        public Task<string> ReadAllTextAsync(IPrivateFileReference file)
+        public async Task DeleteAsync(IPrivateFileReference file)
         {
-            var fileReference = InternalGetAsync(file);
-            return fileReference.ReadAllTextAsync();
+            var fileReference = await this.InternalGetAsync(file);
+            await fileReference.DeleteAsync();
+        }
+
+        public async Task<Stream> ReadAsync(IPrivateFileReference file)
+        {
+            var fileReference = await this.InternalGetAsync(file);
+            return await fileReference.ReadAsync();
+        }
+
+        public async Task<byte[]> ReadAllBytesAsync(IPrivateFileReference file)
+        {
+            var fileReference = await this.InternalGetAsync(file);
+            return await fileReference.ReadAllBytesAsync();
+        }
+
+        public async Task<string> ReadAllTextAsync(IPrivateFileReference file)
+        {
+            var fileReference = await this.InternalGetAsync(file);
+            return await fileReference.ReadAllTextAsync();
+        }
+
+        public async Task<IFileReference> SaveAsync(byte[] data, IPrivateFileReference file, string contentType)
+        {
+            using (var stream = new MemoryStream(data, 0, data.Length))
+            {
+                return await this.SaveAsync(stream, file, contentType);
+            }
         }
 
         public async Task<IFileReference> SaveAsync(Stream data, IPrivateFileReference file, string contentType)
         {
-            var fileReference = InternalGetOrCreateAsync(file);
-            EnsurePathExists(fileReference.FileSystemPath);
+            var fileReference = await this.InternalGetAsync(file, withMetadata: true, checkIfExists: false);
+            this.EnsurePathExists(fileReference.FileSystemPath);
+
             using (var fileStream = File.Open(fileReference.FileSystemPath, FileMode.Create, FileAccess.Write))
             {
                 await data.CopyToAsync(fileStream);
             }
 
+            fileReference.Properties.ContentType = contentType;
+            await fileReference.SavePropertiesAsync();
+
             return fileReference;
         }
 
-        public Task<IFileReference> SaveAsync(byte[] data, IPrivateFileReference file, string contentType)
+        private async Task<Internal.FileSystemFileReference> InternalGetAsync(IPrivateFileReference file, bool withMetadata = false, bool checkIfExists = true)
         {
-            var fileReference = InternalGetOrCreateAsync(file);
-            EnsurePathExists(fileReference.FileSystemPath);
-            File.WriteAllBytes(fileReference.FileSystemPath, data);
-            return Task.FromResult((IFileReference)fileReference);
+            var fileSystemFile = file as Internal.FileSystemFileReference;
+            if (fileSystemFile != null)
+            {
+                return fileSystemFile;
+            }
+
+            return await this.InternalGetAsync(file.Path, withMetadata, checkIfExists);
+        }
+
+        private async Task<Internal.FileSystemFileReference> InternalGetAsync(string path, bool withMetadata, bool checkIfExists = true)
+        {
+            var fullPath = Path.Combine(this.absolutePath, path);
+            if (checkIfExists && !File.Exists(fullPath))
+            {
+                return null;
+            }
+
+            Internal.FileExtendedProperties extendedProperties = null;
+            if (withMetadata)
+            {
+                if (this.extendedPropertiesProvider == null)
+                {
+                    throw new InvalidOperationException("There is no FileSystem extended properties provider.");
+                }
+
+                extendedProperties = await this.extendedPropertiesProvider.GetExtendedPropertiesAsync(
+                    this.Name,
+                    new Storage.Internal.PrivateFileReference(path));
+            }
+
+            return new Internal.FileSystemFileReference(
+                fullPath,
+                path,
+                this.Name,
+                withMetadata,
+                extendedProperties,
+                this.publicUrlProvider,
+                this.extendedPropertiesProvider);
         }
 
         private void EnsurePathExists(string path)
@@ -128,23 +191,6 @@
             {
                 Directory.CreateDirectory(directoryPath);
             }
-        }
-
-        private Internal.FileSystemFileReference InternalGetAsync(IPrivateFileReference file)
-        {
-            var reference = InternalGetOrCreateAsync(file);
-            if (File.Exists(reference.FileSystemPath))
-            {
-                return reference;
-            }
-
-            return null;
-        }
-
-        private Internal.FileSystemFileReference InternalGetOrCreateAsync(IPrivateFileReference file)
-        {
-            var fullPath = Path.Combine(this.absolutePath, file.Path);
-            return new Internal.FileSystemFileReference(fullPath, file.Path, this.Name, this.publicUrlProvider);
         }
     }
 }

@@ -3,17 +3,16 @@
     using System;
     using System.Collections.Generic;
     using System.IO;
-    using System.Linq;
-    using System.Text;
-    using System.Threading.Tasks;
 
     public class FileSystemFileProperties : IFileProperties
     {
-        private FileInfo fileInfo;
+        private readonly FileInfo fileInfo;
+        private readonly FileExtendedProperties extendedProperties;
 
-        public FileSystemFileProperties(FileInfo fileInfo)
+        public FileSystemFileProperties(string fileSystemPath, FileExtendedProperties extendedProperties)
         {
-            this.fileInfo = fileInfo;
+            this.fileInfo = new FileInfo(fileSystemPath);
+            this.extendedProperties = extendedProperties;
         }
 
         public DateTimeOffset? LastModified => new DateTimeOffset(this.fileInfo.LastWriteTimeUtc, TimeZoneInfo.Local.BaseUtcOffset);
@@ -22,28 +21,14 @@
 
         public string ContentType
         {
-            get
-            {
-                throw new NotImplementedException();
-            }
+            get { return this.extendedProperties.ContentType; }
+            set { this.extendedProperties.ContentType = value; }
         }
 
-        public string ETag
-        {
-            get
-            {
-                throw new NotImplementedException();
-            }
-        }
+        public string ETag => this.extendedProperties.ETag;
 
-        public IDictionary<string, string> Metadata
-        {
-            get
-            {
-                throw new NotImplementedException();
-            }
-        }
+        public IDictionary<string, string> Metadata => this.extendedProperties.Metadata;
 
-
+        internal FileExtendedProperties ExtendedProperties => this.extendedProperties;
     }
 }
