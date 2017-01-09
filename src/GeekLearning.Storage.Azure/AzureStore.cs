@@ -153,11 +153,20 @@
         public async Task<IFileReference> SaveAsync(Stream data, IPrivateFileReference file, string contentType)
         {
             var blockBlob = this.container.Value.GetBlockBlobReference(file.Path);
+
+            if (await blockBlob.ExistsAsync())
+            {
+                await blockBlob.FetchAttributesAsync();
+            }
+
             await blockBlob.UploadFromStreamAsync(data);
-            blockBlob.Properties.ContentType = contentType;
-            blockBlob.Properties.CacheControl = "max-age=300, must-revalidate";
-            await blockBlob.SetPropertiesAsync();
-            return new Internal.AzureFileReference(blockBlob, withMetadata: true);
+
+            var reference = new Internal.AzureFileReference(blockBlob, withMetadata: true);
+
+            reference.Properties.ContentType = contentType;
+            await reference.SavePropertiesAsync();
+
+            return reference;
         }
 
         private async Task<Internal.AzureFileReference> InternalGetAsync(IPrivateFileReference file, bool withMetadata = false)

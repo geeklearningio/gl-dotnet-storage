@@ -6,7 +6,7 @@
 
     public class FileSystemFileReference : IFileReference
     {
-        private readonly string storeName;
+        private readonly FileSystemStore store;
         private readonly Lazy<IFileProperties> propertiesLazy;
         private readonly Lazy<string> publicUrlLazy;
         private readonly IExtendedPropertiesProvider extendedPropertiesProvider;
@@ -14,7 +14,7 @@
         public FileSystemFileReference(
             string filePath,
             string path,
-            string storeName,
+            FileSystemStore store,
             bool withMetadata,
             FileExtendedProperties extendedProperties,
             IPublicUrlProvider publicUrlProvider,
@@ -22,7 +22,7 @@
         {
             this.FileSystemPath = filePath;
             this.Path = path.Replace('\\', '/');
-            this.storeName = storeName;
+            this.store = store;
             this.extendedPropertiesProvider = extendedPropertiesProvider;
 
             this.propertiesLazy = new Lazy<IFileProperties>(() =>
@@ -39,7 +39,7 @@
             {
                 if (publicUrlProvider != null)
                 {
-                    return publicUrlProvider.GetPublicUrl(storeName, this);
+                    return publicUrlProvider.GetPublicUrl(this.store.Name, this);
                 }
 
                 throw new InvalidOperationException("There is not FileSystemServer enabled.");
@@ -105,7 +105,7 @@
             }
 
             return this.extendedPropertiesProvider.SaveExtendedPropertiesAsync(
-                this.storeName,
+                this.store.AbsolutePath,
                 this,
                 (this.Properties as FileSystemFileProperties).ExtendedProperties);
         }

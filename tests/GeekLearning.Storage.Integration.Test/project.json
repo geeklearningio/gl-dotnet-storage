@@ -27,7 +27,8 @@
 
     "GeekLearning.Storage": "*",
     "GeekLearning.Storage.Azure": "*",
-    "GeekLearning.Storage.FileSystem": "*"
+    "GeekLearning.Storage.FileSystem": "*",
+    "GeekLearning.Storage.FileSystem.ExtendedProperties.FileSystem": "*"
   },
 
   "frameworks": {

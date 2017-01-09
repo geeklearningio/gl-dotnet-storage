@@ -4,11 +4,11 @@
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
+    using System.Security.Cryptography;
     using System.Threading.Tasks;
 
     public class FileSystemStore : IStore
     {
-        private readonly string absolutePath;
         private readonly IPublicUrlProvider publicUrlProvider;
         private readonly IExtendedPropertiesProvider extendedPropertiesProvider;
 
@@ -21,11 +21,11 @@
 
             if (Path.IsPathRooted(path))
             {
-                this.absolutePath = path;
+                this.AbsolutePath = path;
             }
             else
             {
-                this.absolutePath = Path.Combine(rootPath, path);
+                this.AbsolutePath = Path.Combine(rootPath, path);
             }
 
             this.Name = storeName;
@@ -35,15 +35,17 @@
 
         public string Name { get; }
 
+        internal string AbsolutePath { get; }
+
         public async Task<IFileReference[]> ListAsync(string path, bool recursive, bool withMetadata)
         {
-            var directoryPath = (string.IsNullOrEmpty(path) || path == "/" || path == "\\") ? this.absolutePath : Path.Combine(this.absolutePath, path);
+            var directoryPath = (string.IsNullOrEmpty(path) || path == "/" || path == "\\") ? this.AbsolutePath : Path.Combine(this.AbsolutePath, path);
 
             var result = new List<IFileReference>();
             if (Directory.Exists(directoryPath))
             {
                 var allResultPaths = Directory.GetFiles(directoryPath)
-                    .Select(fp => fp.Replace(this.absolutePath, "").Trim('/', '\\'))
+                    .Select(fp => fp.Replace(this.AbsolutePath, "").Trim('/', '\\'))
                     .ToList();
 
                 foreach (var resultPath in allResultPaths)
@@ -57,7 +59,7 @@
 
         public async Task<IFileReference[]> ListAsync(string path, string searchPattern, bool recursive, bool withMetadata)
         {
-            var directoryPath = (string.IsNullOrEmpty(path) || path == "/" || path == "\\") ? this.absolutePath : Path.Combine(this.absolutePath, path);
+            var directoryPath = (string.IsNullOrEmpty(path) || path == "/" || path == "\\") ? this.AbsolutePath : Path.Combine(this.AbsolutePath, path);
 
             var result = new List<IFileReference>();
             if (Directory.Exists(directoryPath))
@@ -136,7 +138,11 @@
                 await data.CopyToAsync(fileStream);
             }
 
-            fileReference.Properties.ContentType = contentType;
+            var properties = fileReference.Properties as Internal.FileSystemFileProperties;
+
+            properties.ContentType = contentType;
+            properties.ExtendedProperties.ETag = GenerateEtag(fileReference.FileSystemPath);
+
             await fileReference.SavePropertiesAsync();
 
             return fileReference;
@@ -155,7 +161,7 @@
 
         private async Task<Internal.FileSystemFileReference> InternalGetAsync(string path, bool withMetadata, bool checkIfExists = true)
         {
-            var fullPath = Path.Combine(this.absolutePath, path);
+            var fullPath = Path.Combine(this.AbsolutePath, path);
             if (checkIfExists && !File.Exists(fullPath))
             {
                 return null;
@@ -170,14 +176,14 @@
                 }
 
                 extendedProperties = await this.extendedPropertiesProvider.GetExtendedPropertiesAsync(
-                    this.Name,
+                    this.AbsolutePath,
                     new Storage.Internal.PrivateFileReference(path));
             }
 
             return new Internal.FileSystemFileReference(
                 fullPath,
                 path,
-                this.Name,
+                this,
                 withMetadata,
                 extendedProperties,
                 this.publicUrlProvider,
@@ -191,6 +197,21 @@
             {
                 Directory.CreateDirectory(directoryPath);
             }
+        }
+
+        private static string GenerateEtag(string fileSystemPath)
+        {
+            var data = File.ReadAllBytes(fileSystemPath);
+            var etag = string.Empty;
+
+            using (var md5 = MD5.Create())
+            {
+                var hash = md5.ComputeHash(data);
+                string hex = BitConverter.ToString(hash);
+                etag = hex.Replace("-", "");
+            }
+
+            return $"\"{etag}\"";
         }
     }
 }

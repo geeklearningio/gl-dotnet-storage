@@ -46,11 +46,17 @@
 
                     IStore store = storageFactory.GetStore(storeName, storeOptions);
 
-                    var file = await store.GetAsync(context.Request.Path.Value.Substring(subPathStart + 1));
+                    var file = await store.GetAsync(context.Request.Path.Value.Substring(subPathStart + 1), withMetadata: true);
                     if (file != null)
                     {
-                        context.Response.ContentType = "application/octet-stream";
+                        context.Response.ContentType = file.Properties.ContentType;
                         context.Response.StatusCode = StatusCodes.Status200OK;
+
+                        if (!string.IsNullOrEmpty(file.Properties.ETag))
+                        {
+                            context.Response.Headers.Add("ETag", new[] { file.Properties.ETag });
+                        }
+
                         await file.ReadToStreamAsync(context.Response.Body);
                         return;
                     }

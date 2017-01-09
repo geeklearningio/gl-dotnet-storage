@@ -27,6 +27,12 @@
 
         public string ETag => this.extendedProperties.ETag;
 
+        public string CacheControl
+        {
+            get { return this.extendedProperties.CacheControl; }
+            set { this.extendedProperties.CacheControl = value; }
+        }
+
         public IDictionary<string, string> Metadata => this.extendedProperties.Metadata;
 
         internal FileExtendedProperties ExtendedProperties => this.extendedProperties;

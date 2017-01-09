@@ -4,8 +4,8 @@
 
     public interface IExtendedPropertiesProvider
     {
-        Task<Internal.FileExtendedProperties> GetExtendedPropertiesAsync(string storeName, IPrivateFileReference file);
+        Task<Internal.FileExtendedProperties> GetExtendedPropertiesAsync(string storeAbsolutePath, IPrivateFileReference file);
 
-        Task SaveExtendedPropertiesAsync(string storeName, IPrivateFileReference file, Internal.FileExtendedProperties extendedProperties);
+        Task SaveExtendedPropertiesAsync(string storeAbsolutePath, IPrivateFileReference file, Internal.FileExtendedProperties extendedProperties);
     }
 }

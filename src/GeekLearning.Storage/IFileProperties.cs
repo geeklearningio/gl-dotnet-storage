@@ -13,6 +13,8 @@
 
         string ETag { get; }
 
+        string CacheControl { get; set; }
+
         IDictionary<string, string> Metadata { get; }
     }
 }

@@ -52,7 +52,7 @@
             Assert.Equal(textToWrite, readFromWrittenFile);
         }
 
-        [Theory(DisplayName = nameof(AddMetatadaRoundtrip)), InlineData("azure")]
+        [Theory(DisplayName = nameof(AddMetatadaRoundtrip)), InlineData("azure"), InlineData("filesystem")]
         public async Task AddMetatadaRoundtrip(string storeName)
         {
             var storageFactory = this.storeFixture.Services.GetRequiredService<IStorageFactory>();
@@ -76,7 +76,7 @@
             Assert.Equal(id, actualId);
         }
 
-        [Theory(DisplayName = nameof(SaveMetatadaRoundtrip)), InlineData("azure")]
+        [Theory(DisplayName = nameof(SaveMetatadaRoundtrip)), InlineData("azure"), InlineData("filesystem")]
         public async Task SaveMetatadaRoundtrip(string storeName)
         {
             var storageFactory = this.storeFixture.Services.GetRequiredService<IStorageFactory>();
@@ -100,7 +100,7 @@
             Assert.Equal(id, actualId);
         }
 
-        [Theory(DisplayName = nameof(ListMetatadaRoundtrip)), InlineData("azure")]
+        [Theory(DisplayName = nameof(ListMetatadaRoundtrip)), InlineData("azure"), InlineData("filesystem")]
         public async Task ListMetatadaRoundtrip(string storeName)
         {
             var storageFactory = this.storeFixture.Services.GetRequiredService<IStorageFactory>();
