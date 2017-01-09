@@ -1,7 +1,6 @@
 ﻿namespace GeekLearning.Storage
 {
     using System;
-    using System.Collections.Generic;
     using System.IO;
     using System.Threading.Tasks;
 
@@ -28,7 +27,5 @@
         Task<IFileReference> SaveAsync(byte[] data, IPrivateFileReference file, string contentType);
 
         Task<IFileReference> SaveAsync(Stream data, IPrivateFileReference file, string contentType);
-
-        Task<IFileReference> AddMetadataAsync(IPrivateFileReference file, IDictionary<string, string> metadata);
     }
 }

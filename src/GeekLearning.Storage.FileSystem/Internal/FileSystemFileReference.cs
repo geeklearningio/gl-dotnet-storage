@@ -10,35 +10,35 @@
         private IPublicUrlProvider publicUrlProvider;
         private string storeName;
         private FileInfo fileInfo;
+        private Lazy<IFileProperties> propertiesLazy;
 
-        public FileSystemFileReference(string filePath, string path, string storeName, IPublicUrlProvider publicUrlProvider)
+        public FileSystemFileReference(
+            string filePath, 
+            string path, 
+            string storeName, 
+            IPublicUrlProvider publicUrlProvider,
+            bool withMetadata = false)
         {
             this.storeName = storeName;
             this.publicUrlProvider = publicUrlProvider;
             this.FileSystemPath = filePath;
             this.Path = path.Replace('\\', '/');
             this.fileInfo = new FileInfo(this.FileSystemPath);
+
+            this.propertiesLazy = new Lazy<IFileProperties>(() =>
+            {
+                if (withMetadata)
+                {
+                    return new FileSystemFileProperties(this.fileInfo);
+                }
+
+                throw new InvalidOperationException("Metadata are not loaded, please use withMetadata option");
+            });
         }
 
         public string FileSystemPath { get; }
 
         public string Path { get; }
-
-        public IDictionary<string, string> Metadata
-        {
-            get
-            {
-                throw new NotImplementedException();
-            }
-        }
-
-        public string ETag
-        {
-            get
-            {
-                throw new NotImplementedException();
-            }
-        }
 
         public string PublicUrl
         {
@@ -53,17 +53,7 @@
             }
         }
 
-        public DateTimeOffset? LastModified => new DateTimeOffset(this.fileInfo.LastWriteTimeUtc, TimeZoneInfo.Local.BaseUtcOffset);
-
-        public string ContentType
-        {
-            get
-            {
-                throw new NotImplementedException();
-            }
-        }
-
-        public long? Length => this.fileInfo.Length;
+        public IFileProperties Properties => this.propertiesLazy.Value;
 
         public Task DeleteAsync()
         {
@@ -108,12 +98,7 @@
             }
         }
 
-        public Task AddMetadataAsync(IDictionary<string, string> metadata)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task SaveMetadataAsync()
+        public Task SavePropertiesAsync()
         {
             throw new NotImplementedException();
         }

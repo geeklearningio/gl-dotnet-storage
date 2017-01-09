@@ -121,11 +121,6 @@
             return Task.FromResult((IFileReference)fileReference);
         }
 
-        public Task<IFileReference> AddMetadataAsync(IPrivateFileReference file, IDictionary<string, string> metadata)
-        {
-            throw new NotImplementedException();
-        }
-
         private void EnsurePathExists(string path)
         {
             var directoryPath = Path.GetDirectoryName(path);
