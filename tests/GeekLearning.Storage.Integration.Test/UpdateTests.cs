@@ -36,6 +36,37 @@
             Assert.Equal(textToWrite, readFromWrittenFile);
         }
 
+        [Theory(DisplayName = nameof(ETagShouldBeTheSameWithSameContent)), InlineData("azure"), InlineData("filesystem")]
+        public async Task ETagShouldBeTheSameWithSameContent(string storeName)
+        {
+            var storageFactory = this.storeFixture.Services.GetRequiredService<IStorageFactory>();
+
+            var store = storageFactory.GetStore(storeName);
+            var textToWrite = "ETag Test Compute";
+            var filePath = "Update/etag-same.txt";
+
+            var savedReference = await store.SaveAsync(Encoding.UTF8.GetBytes(textToWrite), filePath, "text/plain");
+            var readReference = await store.GetAsync(filePath, withMetadata: true);
+
+            Assert.Equal(savedReference.Properties.ETag, readReference.Properties.ETag);
+        }
+
+        [Theory(DisplayName = nameof(ETagShouldBeDifferentWithDifferentContent)), InlineData("azure"), InlineData("filesystem")]
+        public async Task ETagShouldBeDifferentWithDifferentContent(string storeName)
+        {
+            var storageFactory = this.storeFixture.Services.GetRequiredService<IStorageFactory>();
+
+            var store = storageFactory.GetStore(storeName);
+            var textToWrite = "ETag Test Compute";
+            var filePath = "Update/etag-different.txt";
+            var textToUpdate = "ETag Test Compute 2";
+
+            var savedReference = await store.SaveAsync(Encoding.UTF8.GetBytes(textToWrite), filePath, "text/plain");
+            var updatedReference = await store.SaveAsync(Encoding.UTF8.GetBytes(textToUpdate), filePath, "text/plain");
+
+            Assert.NotEqual(savedReference.Properties.ETag, updatedReference.Properties.ETag);
+        }
+
         [Theory(DisplayName = nameof(SaveStream)), InlineData("azure"), InlineData("filesystem")]
         public async Task SaveStream(string storeName)
         {

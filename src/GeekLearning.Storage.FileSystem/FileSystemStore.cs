@@ -201,12 +201,11 @@
 
         private static string GenerateEtag(string fileSystemPath)
         {
-            var data = File.ReadAllBytes(fileSystemPath);
             var etag = string.Empty;
-
+            using (var stream = File.Open(fileSystemPath, FileMode.Open, FileAccess.Read))
             using (var md5 = MD5.Create())
             {
-                var hash = md5.ComputeHash(data);
+                var hash = md5.ComputeHash(stream);
                 string hex = BitConverter.ToString(hash);
                 etag = hex.Replace("-", "");
             }
