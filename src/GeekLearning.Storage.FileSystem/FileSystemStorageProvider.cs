@@ -21,7 +21,14 @@
         public IStore BuildStore(string storeName, IStorageStoreOptions storeOptions)
         {
             var publicUrlProvider = this.serviceProvider.GetService<IPublicUrlProvider>();
-            return new FileSystemStore(storeName, storeOptions.Parameters["Path"], this.options.Value.RootPath, publicUrlProvider);
+            var extendedPropertiesProvider = this.serviceProvider.GetService<IExtendedPropertiesProvider>();
+
+            return new FileSystemStore(
+                storeName,
+                storeOptions.Parameters["Path"],
+                this.options.Value.RootPath,
+                publicUrlProvider,
+                extendedPropertiesProvider);
         }
     }
 }

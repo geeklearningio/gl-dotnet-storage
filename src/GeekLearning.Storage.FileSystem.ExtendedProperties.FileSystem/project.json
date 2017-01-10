@@ -1,0 +1,22 @@
+﻿{
+  "version": "0.0.1-*",
+  "description": "File System based extended properties storage provider for the FileSystem provider.",
+  "authors": [ "Geek Learning", "Adrien Siffermann", "Cyprien Autexier" ],
+  "packOptions": {
+    "tags": [],
+    "projectUrl": "",
+    "licenseUrl": ""
+  },
+
+  "dependencies": {
+    "NETStandard.Library": "1.6.1",
+    "Newtonsoft.Json": "9.0.1",
+
+    "GeekLearning.Storage.FileSystem": "*"
+  },
+
+  "frameworks": {
+    "net45": {},
+    "netstandard1.3": {}
+  }
+}

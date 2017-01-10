@@ -1,7 +1,5 @@
 ﻿namespace GeekLearning.Storage
 {
-    using System;
-    using System.Collections.Generic;
     using System.IO;
     using System.Threading.Tasks;
 
@@ -9,13 +7,7 @@
     {
         string PublicUrl { get; }
 
-        DateTimeOffset? LastModified { get; }
-
-        string ContentType { get; }
-
-        long? Length { get; }
-
-        IDictionary<string, string> Metadata { get; }
+        IFileProperties Properties { get; }
 
         Task ReadToStreamAsync(Stream targetStream);
 
@@ -31,8 +23,6 @@
 
         Task<string> GetExpirableUriAsync();
 
-        Task AddMetadataAsync(IDictionary<string, string> metadata);
-
-        Task SaveMetadataAsync();
+        Task SavePropertiesAsync();
     }
 }

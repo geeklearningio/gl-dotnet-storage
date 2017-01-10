@@ -9,6 +9,7 @@
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
+    using System.IO;
 
     public class StoresFixture : IDisposable
     {
@@ -35,7 +36,8 @@
 
             services.AddStorage()
                 .AddAzureStorage()
-                .AddFileSystemStorage(BasePath);
+                .AddFileSystemStorage(BasePath)
+                .AddFileSystemExtendedProperties(o => { });
 
             services.Configure<StorageOptions>(Configuration.GetSection("Storage"));
 
@@ -55,7 +57,7 @@
             var directoryName = Configuration["Storage:Stores:filesystem:Parameters:Path"];
             var process = Process.Start(new ProcessStartInfo("robocopy.exe")
             {
-                Arguments = $"\"{System.IO.Path.Combine(BasePath, "SampleDirectory")}\" \"{System.IO.Path.Combine(BasePath, directoryName)}\" /MIR"
+                Arguments = $"\"{Path.Combine(BasePath, "SampleDirectory")}\" \"{Path.Combine(BasePath, directoryName)}\" /MIR"
             });
 
             if (!process.WaitForExit(30000))
@@ -100,6 +102,21 @@
         public void Dispose()
         {
             container.DeleteIfExistsAsync().Wait();
+
+            var fileSystemPath = Configuration["Storage:Stores:filesystem:Parameters:Path"];
+            var folderNameFormat = Configuration["Storage:ExtendedPropertiesFolderNameFormat"];
+
+            var directoryName = Path.Combine(BasePath, fileSystemPath);
+            if (Directory.Exists(directoryName))
+            {
+                Directory.Delete(directoryName, true);
+            }
+
+            directoryName = Path.Combine(BasePath, string.Format(folderNameFormat, fileSystemPath));
+            if (Directory.Exists(directoryName))
+            {
+                Directory.Delete(directoryName, true);
+            }
         }
     }
 }
