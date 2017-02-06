@@ -5,10 +5,28 @@
 
 # gl-dotnet-storage
 
-Coming Soon!
+This library abstracts physical data storage in a way which allows you to transparently switch the underlying provider
+by configuration.
 
-#Storage Abstraction
+## Features
 
-#FileSystem provider
+* List files, with globbing support
+* Read, Write, Delete files
+* Public file url
 
-#Azure blob provider
+## Providers
+
+The library currently supports:
+* Azure Blob Storage
+* File System Storage
+
+We don't support for Amazon S3, but it is one of our high priority objective.
+
+## Getting Started
+
+You can head to our introduction [blog post](http://geeklearning.io/dotnet-core-storage-cloud-or-file-system-storage-made-easy/), 
+or to the [wiki](https://github.com/geeklearningio/gl-dotnet-storage/wiki).
+
+## Roadmap
+
+A rough roadmap is available [here(https://github.com/geeklearningio/gl-dotnet-storage/wiki/Roadmap).
