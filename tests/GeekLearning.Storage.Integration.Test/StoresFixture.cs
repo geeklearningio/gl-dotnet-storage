@@ -20,12 +20,15 @@
         {
             this.BasePath = PlatformServices.Default.Application.ApplicationBasePath;
 
+            var containerId = Guid.NewGuid().ToString("N").ToLower();
+
             var builder = new ConfigurationBuilder()
                 .SetBasePath(BasePath)
                 .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
                 .AddJsonFile($"appsettings.development.json", optional: true)
                 .AddInMemoryCollection(new KeyValuePair<string, string>[] {
-                    new KeyValuePair<string, string>("Storage:Stores:azure:Parameters:Container", Guid.NewGuid().ToString("N").ToLower())
+                    new KeyValuePair<string, string>("Storage:Stores:azure:Parameters:Container", containerId),
+                    new KeyValuePair<string, string>("TestStore:Parameters:Container", containerId)
                 });
 
             this.Configuration = builder.Build();
@@ -40,6 +43,7 @@
                 .AddFileSystemExtendedProperties(o => { });
 
             services.Configure<StorageOptions>(Configuration.GetSection("Storage"));
+            services.Configure<TestStore>(Configuration.GetSection("TestStore"));
 
             this.Services = services.BuildServiceProvider();
 
