@@ -1,12 +1,10 @@
-﻿using Microsoft.Extensions.Options;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
-
-namespace GeekLearning.Storage.Internal
+﻿namespace GeekLearning.Storage.Internal
 {
+    using Microsoft.Extensions.Options;
+    using System;
+    using System.IO;
+    using System.Threading.Tasks;
+
     public class GenericStoreProxy<TOptions> : IStore, IStore<TOptions>
         where TOptions : class, IStorageStoreOptions, new()
     {

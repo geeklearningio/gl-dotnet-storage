@@ -1,10 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-
-namespace GeekLearning.Storage.Integration.Test
+﻿namespace GeekLearning.Storage.Integration.Test
 {
+    using System.Collections.Generic;
+
     public class TestStore : IStorageStoreOptions
     {
         public string Provider { get; set; }

@@ -3,6 +3,5 @@
     public interface IStore<TOptions> : IStore
         where TOptions : class, IStorageStoreOptions, new()
     {
-
     }
 }
