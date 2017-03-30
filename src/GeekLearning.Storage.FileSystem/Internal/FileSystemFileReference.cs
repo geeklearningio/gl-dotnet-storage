@@ -1,69 +1,62 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
-
-namespace GeekLearning.Storage.FileSystem.Internal
+﻿namespace GeekLearning.Storage.FileSystem.Internal
 {
+    using System;
+    using System.IO;
+    using System.Threading.Tasks;
+
     public class FileSystemFileReference : IFileReference
     {
-        private string filePath;
-        private string path;
-        private IPublicUrlProvider publicUrlProvider;
-        private string storeName;
-        private FileInfo fileInfo;
+        private readonly FileSystemStore store;
+        private readonly Lazy<IFileProperties> propertiesLazy;
+        private readonly Lazy<string> publicUrlLazy;
+        private readonly IExtendedPropertiesProvider extendedPropertiesProvider;
 
-        public FileSystemFileReference(string filePath, string path, string storeName, IPublicUrlProvider publicUrlProvider)
+        public FileSystemFileReference(
+            string filePath,
+            string path,
+            FileSystemStore store,
+            bool withMetadata,
+            FileExtendedProperties extendedProperties,
+            IPublicUrlProvider publicUrlProvider,
+            IExtendedPropertiesProvider extendedPropertiesProvider)
         {
-            this.storeName = storeName;
-            this.publicUrlProvider = publicUrlProvider;
-            this.filePath = filePath;
-            this.path = path.Replace('\\', '/');
-            this.fileInfo = new FileInfo(this.FileSystemPath);
-        }
+            this.FileSystemPath = filePath;
+            this.Path = path.Replace('\\', '/');
+            this.store = store;
+            this.extendedPropertiesProvider = extendedPropertiesProvider;
 
-        public string FileSystemPath => this.filePath;
-
-        public IDictionary<string, string> Metadata
-        {
-            get
+            this.propertiesLazy = new Lazy<IFileProperties>(() =>
             {
-                throw new NotImplementedException();
-            }
-        }
+                if (withMetadata)
+                {
+                    return new FileSystemFileProperties(this.FileSystemPath, extendedProperties);
+                }
 
-        public string Path => this.path;
+                throw new InvalidOperationException("Metadata are not loaded, please use withMetadata option");
+            });
 
-
-        public string PublicUrl
-        {
-            get
+            this.publicUrlLazy = new Lazy<string>(() =>
             {
                 if (publicUrlProvider != null)
                 {
-                    return publicUrlProvider.GetPublicUrl(storeName, this);
+                    return publicUrlProvider.GetPublicUrl(this.store.Name, this);
                 }
 
-                throw new NotSupportedException("There is not FileSystemServer enabled.");
-            }
+                throw new InvalidOperationException("There is not FileSystemServer enabled.");
+            });
         }
 
-        public DateTimeOffset? LastModified => new DateTimeOffset(this.fileInfo.LastWriteTimeUtc, TimeZoneInfo.Local.BaseUtcOffset);
+        public string FileSystemPath { get; }
 
-        public string ContentType
-        {
-            get
-            {
-                throw new NotImplementedException();
-            }
-        }
+        public string Path { get; }
 
-        public long? Length => this.fileInfo.Length;
-       
+        public string PublicUrl => this.publicUrlLazy.Value;
+
+        public IFileProperties Properties => this.propertiesLazy.Value;
+
         public Task DeleteAsync()
         {
-            File.Delete(this.filePath);
+            File.Delete(this.FileSystemPath);
             return Task.FromResult(true);
         }
 
@@ -82,14 +75,15 @@ namespace GeekLearning.Storage.FileSystem.Internal
             return Task.FromResult(File.ReadAllText(this.FileSystemPath));
         }
 
-        public async Task<Stream> ReadAsync()
+        public Task<Stream> ReadAsync()
         {
-            return File.OpenRead(this.filePath);
+            Stream stream = File.OpenRead(this.FileSystemPath);
+            return Task.FromResult(stream);
         }
 
         public async Task ReadToStreamAsync(Stream targetStream)
         {
-            using (var file = File.Open(this.filePath, FileMode.Open, FileAccess.Read))
+            using (var file = File.Open(this.FileSystemPath, FileMode.Open, FileAccess.Read))
             {
                 await file.CopyToAsync(targetStream);
             }
@@ -97,20 +91,23 @@ namespace GeekLearning.Storage.FileSystem.Internal
 
         public async Task UpdateAsync(Stream stream)
         {
-            using (var file = File.Open(this.filePath, FileMode.Truncate, FileAccess.Write))
+            using (var file = File.Open(this.FileSystemPath, FileMode.Truncate, FileAccess.Write))
             {
                 await stream.CopyToAsync(file);
             }
         }
 
-        public Task AddMetadataAsync(IDictionary<string, string> metadata)
+        public Task SavePropertiesAsync()
         {
-            throw new NotImplementedException();
-        }
+            if (this.extendedPropertiesProvider == null)
+            {
+                throw new InvalidOperationException("There is no FileSystem extended properties provider.");
+            }
 
-        public Task SaveMetadataAsync()
-        {
-            throw new NotImplementedException();
+            return this.extendedPropertiesProvider.SaveExtendedPropertiesAsync(
+                this.store.AbsolutePath,
+                this,
+                (this.Properties as FileSystemFileProperties).ExtendedProperties);
         }
     }
 }

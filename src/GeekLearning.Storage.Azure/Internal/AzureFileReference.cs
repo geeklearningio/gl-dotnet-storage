@@ -1,67 +1,46 @@
-﻿using Microsoft.WindowsAzure.Storage;
-using Microsoft.WindowsAzure.Storage.Blob;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
-
-namespace GeekLearning.Storage.Azure.Internal
+﻿namespace GeekLearning.Storage.Azure.Internal
 {
+    using Microsoft.WindowsAzure.Storage;
+    using Microsoft.WindowsAzure.Storage.Blob;
+    using System;
+    using System.IO;
+    using System.Threading.Tasks;
+
     public class AzureFileReference : IFileReference
     {
-        private ICloudBlob cloudBlob;
+        private Lazy<IFileProperties> propertiesLazy;
 
-        public AzureFileReference(IListBlobItem blobItem)
-           : this(blobItem as ICloudBlob)
-        {
-        }
-
-        public AzureFileReference(string path, IListBlobItem blobItem)
-            : this(path, blobItem as ICloudBlob)
-        {
-        }
-
-        public AzureFileReference(string path, ICloudBlob cloudBlob)
+        public AzureFileReference(string path, ICloudBlob cloudBlob, bool withMetadata)
         {
             this.Path = path;
-            this.cloudBlob = cloudBlob;
+            this.CloudBlob = cloudBlob;
+            this.propertiesLazy = new Lazy<IFileProperties>(() =>
+            {
+                if (withMetadata && cloudBlob.Metadata != null && cloudBlob.Properties != null)
+                {
+                    return new AzureFileProperties(cloudBlob);
+                }
+
+                throw new InvalidOperationException("Metadata are not loaded, please use withMetadata option");
+            });
         }
 
-        public AzureFileReference(ICloudBlob cloudBlob) :
-            this(cloudBlob.Name, cloudBlob)
+        public AzureFileReference(ICloudBlob cloudBlob, bool withMetadata) :
+            this(cloudBlob.Name, cloudBlob, withMetadata)
         {
-
         }
-
-        public DateTimeOffset? LastModified => this.cloudBlob.Properties?.LastModified;
-
-        public string ContentType => this.cloudBlob.Properties?.ContentType;
-
-        public long? Length => this.cloudBlob.Properties?.Length;
 
         public string Path { get; }
 
-        public string PublicUrl => cloudBlob.Uri.ToString();
+        public IFileProperties Properties => this.propertiesLazy.Value;
 
-        public ICloudBlob CloudBlob => this.cloudBlob;
+        public string PublicUrl => this.CloudBlob.Uri.ToString();
 
-        public IDictionary<string, string> Metadata
-        {
-            get
-            {
-                if (this.cloudBlob.Metadata == null)
-                {
-                    throw new InvalidOperationException("Metadata are not loaded, please use withMetadata option");
-                }
-
-                return this.cloudBlob.Metadata;
-            }
-        }
+        public ICloudBlob CloudBlob { get; }
 
         public Task DeleteAsync()
         {
-            return this.cloudBlob.DeleteAsync();
+            return this.CloudBlob.DeleteAsync();
         }
 
         public async Task<Stream> ReadAsync()
@@ -79,7 +58,7 @@ namespace GeekLearning.Storage.Azure.Internal
 
         public Task UpdateAsync(Stream stream)
         {
-            return this.cloudBlob.UploadFromStreamAsync(stream);
+            return this.CloudBlob.UploadFromStreamAsync(stream);
         }
 
         public Task<string> GetExpirableUriAsync()
@@ -94,7 +73,7 @@ namespace GeekLearning.Storage.Azure.Internal
 
         public async Task<string> ReadAllTextAsync()
         {
-            using (var reader = new StreamReader(await cloudBlob.OpenReadAsync(AccessCondition.GenerateEmptyCondition(), new BlobRequestOptions(), new OperationContext())))
+            using (var reader = new StreamReader(await this.CloudBlob.OpenReadAsync(AccessCondition.GenerateEmptyCondition(), new BlobRequestOptions(), new OperationContext())))
             {
                 return await reader.ReadToEndAsync();
             }
@@ -105,19 +84,10 @@ namespace GeekLearning.Storage.Azure.Internal
             return (await this.ReadInMemoryAsync()).ToArray();
         }
 
-        public async Task AddMetadataAsync(IDictionary<string, string> metadata)
+        public async Task SavePropertiesAsync()
         {
-            foreach (var pair in metadata)
-            {
-                this.cloudBlob.Metadata[pair.Key] = pair.Value;
-            }
-
-            await this.cloudBlob.SetMetadataAsync();
-        }
-
-        public Task SaveMetadataAsync()
-        {
-            return this.cloudBlob.SetMetadataAsync();
+            await this.CloudBlob.SetPropertiesAsync();
+            await this.CloudBlob.SetMetadataAsync();
         }
     }
 }

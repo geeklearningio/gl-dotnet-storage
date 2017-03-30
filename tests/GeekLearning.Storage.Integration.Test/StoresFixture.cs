@@ -1,17 +1,15 @@
-﻿namespace GeekLearning.Integration.Test
+﻿namespace GeekLearning.Storage.Integration.Test
 {
+    using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Extensions.PlatformAbstractions;
+    using Microsoft.WindowsAzure.Storage;
+    using Microsoft.WindowsAzure.Storage.Blob;
     using Storage;
     using System;
     using System.Collections.Generic;
-    using System.Linq;
-    using System.Threading.Tasks;
-    using Xunit;
-    using Microsoft.Extensions.PlatformAbstractions;
-    using Microsoft.Extensions.Configuration;
     using System.Diagnostics;
-    using Microsoft.WindowsAzure.Storage;
-    using Microsoft.WindowsAzure.Storage.Blob;
+    using System.IO;
 
     public class StoresFixture : IDisposable
     {
@@ -22,12 +20,15 @@
         {
             this.BasePath = PlatformServices.Default.Application.ApplicationBasePath;
 
+            var containerId = Guid.NewGuid().ToString("N").ToLower();
+
             var builder = new ConfigurationBuilder()
                 .SetBasePath(BasePath)
                 .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
-                .AddJsonFile($"appsettings.development.json", optional: true).
-                AddInMemoryCollection(new KeyValuePair<string, string>[] {
-                    new KeyValuePair<string, string>("Storage:Stores:azure:Parameters:Container", Guid.NewGuid().ToString("N").ToLower())
+                .AddJsonFile($"appsettings.development.json", optional: true)
+                .AddInMemoryCollection(new KeyValuePair<string, string>[] {
+                    new KeyValuePair<string, string>("Storage:Stores:azure:Parameters:Container", containerId),
+                    new KeyValuePair<string, string>("TestStore:Parameters:Container", containerId)
                 });
 
             this.Configuration = builder.Build();
@@ -38,14 +39,15 @@
 
             services.AddStorage()
                 .AddAzureStorage()
-                .AddFileSystemStorage(BasePath);
+                .AddFileSystemStorage(BasePath)
+                .AddFileSystemExtendedProperties(o => { });
 
             services.Configure<StorageOptions>(Configuration.GetSection("Storage"));
+            services.Configure<TestStore>(Configuration.GetSection("TestStore"));
 
             this.Services = services.BuildServiceProvider();
 
             ResetStores();
-
         }
 
         private void ResetStores()
@@ -59,14 +61,10 @@
             var directoryName = Configuration["Storage:Stores:filesystem:Parameters:Path"];
             var process = Process.Start(new ProcessStartInfo("robocopy.exe")
             {
-                Arguments = $"\"{System.IO.Path.Combine(BasePath, "SampleDirectory")}\" \"{System.IO.Path.Combine(BasePath, directoryName)}\" /MIR"
+                Arguments = $"\"{Path.Combine(BasePath, "SampleDirectory")}\" \"{Path.Combine(BasePath, directoryName)}\" /MIR"
             });
 
-            if (process.WaitForExit(30000))
-            {
-
-            }
-            else
+            if (!process.WaitForExit(30000))
             {
                 throw new TimeoutException("File system store was not reset properly");
             }
@@ -78,8 +76,7 @@
                 Environment.ExpandEnvironmentVariables(Configuration["AzCopyPath"]),
                 "AzCopy.exe");
 
-
-            cloudStorageAccount = Microsoft.WindowsAzure.Storage.CloudStorageAccount.Parse(Configuration["Storage:Stores:azure:Parameters:ConnectionString"]);
+            cloudStorageAccount = CloudStorageAccount.Parse(Configuration["Storage:Stores:azure:Parameters:ConnectionString"]);
             var key = cloudStorageAccount.Credentials.ExportBase64EncodedKey();
             var containerName = Configuration["Storage:Stores:azure:Parameters:Container"];
             var dest = cloudStorageAccount.BlobStorageUri.PrimaryUri.ToString() + containerName;
@@ -94,23 +91,36 @@
                 Arguments = $"/Source:\"{System.IO.Path.Combine(BasePath, "SampleDirectory")}\" /Dest:\"{dest}\" /DestKey:{key} /S"
             });
 
-            if (process.WaitForExit(30000))
-            {
-
-            }
-            else
+            if (!process.WaitForExit(30000))
             {
                 throw new TimeoutException("Azure store was not reset properly");
             }
         }
 
         public IConfigurationRoot Configuration { get; }
+
         public IServiceProvider Services { get; }
+
         public string BasePath { get; }
 
         public void Dispose()
         {
             container.DeleteIfExistsAsync().Wait();
+
+            var fileSystemPath = Configuration["Storage:Stores:filesystem:Parameters:Path"];
+            var folderNameFormat = Configuration["Storage:ExtendedPropertiesFolderNameFormat"];
+
+            var directoryName = Path.Combine(BasePath, fileSystemPath);
+            if (Directory.Exists(directoryName))
+            {
+                Directory.Delete(directoryName, true);
+            }
+
+            directoryName = Path.Combine(BasePath, string.Format(folderNameFormat, fileSystemPath));
+            if (Directory.Exists(directoryName))
+            {
+                Directory.Delete(directoryName, true);
+            }
         }
     }
 }

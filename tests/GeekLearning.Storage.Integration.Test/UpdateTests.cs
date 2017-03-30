@@ -1,20 +1,19 @@
-﻿namespace GeekLearning.Integration.Test
+﻿namespace GeekLearning.Storage.Integration.Test
 {
+    using Storage;
+    using Microsoft.Extensions.DependencyInjection;
     using System;
     using System.Collections.Generic;
-    using System.Linq;
-    using System.Threading.Tasks;
-    using Xunit;
-    using GeekLearning.Storage;
-    using Microsoft.Extensions.DependencyInjection;
     using System.IO;
     using System.Text;
+    using System.Threading.Tasks;
+    using Xunit;
 
     [Collection(nameof(IntegrationCollection))]
     [Trait("Operation", "Update"), Trait("Kind", "Integration")]
     public class UpdateTests
     {
-        StoresFixture storeFixture;
+        private StoresFixture storeFixture;
 
         public UpdateTests(StoresFixture fixture)
         {
@@ -37,6 +36,37 @@
             Assert.Equal(textToWrite, readFromWrittenFile);
         }
 
+        [Theory(DisplayName = nameof(ETagShouldBeTheSameWithSameContent)), InlineData("azure"), InlineData("filesystem")]
+        public async Task ETagShouldBeTheSameWithSameContent(string storeName)
+        {
+            var storageFactory = this.storeFixture.Services.GetRequiredService<IStorageFactory>();
+
+            var store = storageFactory.GetStore(storeName);
+            var textToWrite = "ETag Test Compute";
+            var filePath = "Update/etag-same.txt";
+
+            var savedReference = await store.SaveAsync(Encoding.UTF8.GetBytes(textToWrite), filePath, "text/plain");
+            var readReference = await store.GetAsync(filePath, withMetadata: true);
+
+            Assert.Equal(savedReference.Properties.ETag, readReference.Properties.ETag);
+        }
+
+        [Theory(DisplayName = nameof(ETagShouldBeDifferentWithDifferentContent)), InlineData("azure"), InlineData("filesystem")]
+        public async Task ETagShouldBeDifferentWithDifferentContent(string storeName)
+        {
+            var storageFactory = this.storeFixture.Services.GetRequiredService<IStorageFactory>();
+
+            var store = storageFactory.GetStore(storeName);
+            var textToWrite = "ETag Test Compute";
+            var filePath = "Update/etag-different.txt";
+            var textToUpdate = "ETag Test Compute 2";
+
+            var savedReference = await store.SaveAsync(Encoding.UTF8.GetBytes(textToWrite), filePath, "text/plain");
+            var updatedReference = await store.SaveAsync(Encoding.UTF8.GetBytes(textToUpdate), filePath, "text/plain");
+
+            Assert.NotEqual(savedReference.Properties.ETag, updatedReference.Properties.ETag);
+        }
+
         [Theory(DisplayName = nameof(SaveStream)), InlineData("azure"), InlineData("filesystem")]
         public async Task SaveStream(string storeName)
         {
@@ -53,7 +83,7 @@
             Assert.Equal(textToWrite, readFromWrittenFile);
         }
 
-        [Theory(DisplayName = nameof(AddMetatadaRoundtrip)), InlineData("azure")]
+        [Theory(DisplayName = nameof(AddMetatadaRoundtrip)), InlineData("azure"), InlineData("filesystem")]
         public async Task AddMetatadaRoundtrip(string storeName)
         {
             var storageFactory = this.storeFixture.Services.GetRequiredService<IStorageFactory>();
@@ -62,23 +92,22 @@
 
             var testFile = "Metadata/TextFile.txt";
 
-            var file = await store.GetAsync(testFile);
+            var file = await store.GetAsync(testFile, withMetadata: true);
 
             var id = Guid.NewGuid().ToString();
 
-            await file.AddMetadataAsync(new Dictionary<string, string>
-            {
-                ["id"] = id
-            });
+            file.Properties.Metadata.Add("newid", id);
 
-            file = await store.GetAsync(testFile);
+            await file.SavePropertiesAsync();
 
-            var actualId = file.Metadata["id"];
+            file = await store.GetAsync(testFile, withMetadata: true);
+
+            var actualId = file.Properties.Metadata["newid"];
 
             Assert.Equal(id, actualId);
         }
 
-        [Theory(DisplayName = nameof(SaveMetatadaRoundtrip)), InlineData("azure")]
+        [Theory(DisplayName = nameof(SaveMetatadaRoundtrip)), InlineData("azure"), InlineData("filesystem")]
         public async Task SaveMetatadaRoundtrip(string storeName)
         {
             var storageFactory = this.storeFixture.Services.GetRequiredService<IStorageFactory>();
@@ -87,22 +116,22 @@
 
             var testFile = "Metadata/TextFile.txt";
 
-            var file = await store.GetAsync(testFile);
+            var file = await store.GetAsync(testFile, withMetadata: true);
 
             var id = Guid.NewGuid().ToString();
 
-            file.Metadata["id"] = id;
+            file.Properties.Metadata["id"] = id;
 
-            await file.SaveMetadataAsync();
+            await file.SavePropertiesAsync();
 
-            file = await store.GetAsync(testFile);
+            file = await store.GetAsync(testFile, withMetadata: true);
 
-            var actualId = file.Metadata["id"];
+            var actualId = file.Properties.Metadata["id"];
 
             Assert.Equal(id, actualId);
         }
 
-        [Theory(DisplayName = nameof(ListMetatadaRoundtrip)), InlineData("azure")]
+        [Theory(DisplayName = nameof(ListMetatadaRoundtrip)), InlineData("azure"), InlineData("filesystem")]
         public async Task ListMetatadaRoundtrip(string storeName)
         {
             var storageFactory = this.storeFixture.Services.GetRequiredService<IStorageFactory>();
@@ -111,13 +140,13 @@
 
             var testFile = "Metadata/TextFile.txt";
 
-            var file = await store.GetAsync(testFile);
+            var file = await store.GetAsync(testFile, withMetadata: true);
 
             var id = Guid.NewGuid().ToString();
 
-            file.Metadata["id"] = id;
+            file.Properties.Metadata["id"] = id;
 
-            await file.SaveMetadataAsync();
+            await file.SavePropertiesAsync();
 
             var files = await store.ListAsync("Metadata", withMetadata: true);
 
@@ -127,7 +156,7 @@
             {
                 if (aFile.Path == testFile)
                 {
-                    actualId = aFile.Metadata["id"];
+                    actualId = aFile.Properties.Metadata["id"];
                 }
             }
 

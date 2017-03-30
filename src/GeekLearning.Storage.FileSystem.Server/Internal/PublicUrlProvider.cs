@@ -1,11 +1,8 @@
 ﻿namespace GeekLearning.Storage.FileSystem.Server.Internal
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Threading.Tasks;
-    using GeekLearning.Storage.FileSystem.Internal;
+    using FileSystem.Internal;
     using Microsoft.Extensions.Options;
+    using System;
 
     public class PublicUrlProvider : IPublicUrlProvider
     {

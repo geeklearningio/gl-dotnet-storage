@@ -1,12 +1,8 @@
-﻿using Microsoft.Extensions.FileSystemGlobbing.Abstractions;
-using Microsoft.WindowsAzure.Storage.Blob;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-
-namespace GeekLearning.Storage.Azure.Internal
+﻿namespace GeekLearning.Storage.Azure.Internal
 {
+    using Microsoft.Extensions.FileSystemGlobbing.Abstractions;
+    using Microsoft.WindowsAzure.Storage.Blob;
+
     public class AzureListFileWrapper : FileInfoBase
     {
         private ICloudBlob blob;
@@ -25,31 +21,14 @@ namespace GeekLearning.Storage.Azure.Internal
             {
                 this.name = blob.Name;
             }
+
             this.parent = parent;
         }
 
-        public override string FullName
-        {
-            get
-            {
-                return this.blob.Name;
-            }
-        }
+        public override string FullName => this.blob.Name;
 
-        public override string Name
-        {
-            get
-            {
-                return name;
-            }
-        }
+        public override string Name => this.name;
 
-        public override DirectoryInfoBase ParentDirectory
-        {
-            get
-            {
-                return this.parent;
-            }
-        }
+        public override DirectoryInfoBase ParentDirectory => this.parent;
     }
 }
