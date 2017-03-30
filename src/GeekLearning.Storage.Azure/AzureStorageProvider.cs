@@ -1,14 +1,23 @@
 ﻿namespace GeekLearning.Storage.Azure
 {
+    using GeekLearning.Storage.Internal;
+    using Microsoft.Extensions.Options;
     using Storage;
 
-    public class AzureStorageProvider : IStorageProvider
+    public class AzureStorageProvider : StorageProviderBase<ProviderOptions, StoreOptions>
     {
-        public string Name => "Azure";
+        public const string ProviderName = "Azure";
 
-        public IStore BuildStore(string storeName, IStorageStoreOptions storeOptions)
+        public AzureStorageProvider(IOptions<ProviderOptions> options)
+            : base(options)
         {
-            return new AzureStore(storeName, storeOptions.Parameters["ConnectionString"], storeOptions.Parameters["Container"]);
+        }
+
+        public override string Name => ProviderName;
+
+        protected override IStore BuildStore(string storeName, StoreOptions storeOptions)
+        {
+            return new AzureStore(storeName, storeOptions.ConnectionString, storeOptions.Container);
         }
     }
 }

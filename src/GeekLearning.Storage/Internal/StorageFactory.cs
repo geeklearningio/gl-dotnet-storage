@@ -17,21 +17,19 @@
 
         public IStore GetStore(string storeName, IStorageStoreOptions configuration)
         {
-            return this.storageProviders.FirstOrDefault(x => x.Name == configuration.Provider).BuildStore(storeName, configuration);
+            return this.GetProvider(configuration.Provider).BuildStore(storeName, configuration);
         }
 
         public IStore GetStore(string storeName)
         {
-            var conf = this.options.Value.Stores[storeName];
-            return this.storageProviders.FirstOrDefault(x => x.Name == conf.Provider).BuildStore(storeName, conf);
+            return this.GetProvider(this.GetStoreConfiguration(storeName).Provider).BuildStore(storeName);
         }
 
         public bool TryGetStore(string storeName, out IStore store)
         {
-            StorageOptions.StorageStoreOptions conf;
-            if (this.options.Value.Stores.TryGetValue(storeName, out conf))
+            if (this.options.Value.Stores.TryGetValue(storeName, out var configuration))
             {
-                store = this.storageProviders.FirstOrDefault(x => x.Name == conf.Provider).BuildStore(storeName, conf);
+                store = this.GetProvider(configuration.Provider).BuildStore(storeName);
                 return true;
             }
 
@@ -41,18 +39,38 @@
 
         public bool TryGetStore(string storeName, out IStore store, string provider)
         {
-            StorageOptions.StorageStoreOptions conf;
-            if (this.options.Value.Stores.TryGetValue(storeName, out conf))
+            if (this.options.Value.Stores.TryGetValue(storeName, out var configuration))
             {
-                if (provider == conf.Provider)
+                if (provider == configuration.Provider)
                 {
-                    store = this.storageProviders.FirstOrDefault(x => x.Name == conf.Provider).BuildStore(storeName, conf);
+                    store = this.GetProvider(configuration.Provider).BuildStore(storeName);
                     return true;
                 }
             }
 
             store = null;
             return false;
+        }
+
+        private IStorageProvider GetProvider(string providerName)
+        {
+            var provider = this.storageProviders.FirstOrDefault(p => p.Name == providerName);
+            if (provider == null)
+            {
+                throw new Exceptions.ProviderNotFoundException(providerName);
+            }
+
+            return provider;
+        }
+
+        private StorageOptions.StorageStoreOptions GetStoreConfiguration(string storeName)
+        {
+            if (this.options.Value.Stores.TryGetValue(storeName, out var configuration))
+            {
+                return configuration;
+            }
+
+            throw new Exceptions.StoreNotFoundException(storeName);
         }
     }
 }

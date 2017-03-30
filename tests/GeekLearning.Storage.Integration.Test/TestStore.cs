@@ -1,11 +1,11 @@
 ﻿namespace GeekLearning.Storage.Integration.Test
 {
-    using System.Collections.Generic;
+    using Microsoft.Extensions.Configuration;
 
     public class TestStore : IStorageStoreOptions
     {
         public string Provider { get; set; }
 
-        public Dictionary<string, string> Parameters { get; set; }
+        public IConfigurationSection Parameters { get; set; }
     }
 }

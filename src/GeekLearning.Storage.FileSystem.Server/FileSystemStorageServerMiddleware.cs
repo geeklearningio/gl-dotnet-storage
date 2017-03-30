@@ -38,11 +38,12 @@
                     && storeOptions.Provider == "FileSystem")
                 {
                     string access;
-                    if (!storeOptions.Parameters.TryGetValue("Access", out access) && access != "Public")
-                    {
-                        context.Response.StatusCode = StatusCodes.Status403Forbidden;
-                        return;
-                    }
+                    // TODO: Fix options!
+                    //if (!storeOptions.Parameters.TryGetValue("Access", out access) && access != "Public")
+                    //{
+                    //    context.Response.StatusCode = StatusCodes.Status403Forbidden;
+                    //    return;
+                    //}
 
                     IStore store = storageFactory.GetStore(storeName, storeOptions);
 

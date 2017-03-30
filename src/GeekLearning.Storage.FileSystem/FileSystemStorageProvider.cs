@@ -1,31 +1,29 @@
 ﻿namespace GeekLearning.Storage.FileSystem
 {
-    using Microsoft.Extensions.DependencyInjection;
+    using GeekLearning.Storage.Internal;
     using Microsoft.Extensions.Options;
     using Storage;
-    using System;
 
-    public class FileSystemStorageProvider : IStorageProvider
+    public class FileSystemStorageProvider : StorageProviderBase<ProviderOptions, StoreOptions>
     {
-        private IOptions<FileSystemOptions> options;
-        private IServiceProvider serviceProvider;
+        public const string ProviderName = "FileSystem";
+        private readonly IPublicUrlProvider publicUrlProvider;
+        private readonly IExtendedPropertiesProvider extendedPropertiesProvider;
 
-        public FileSystemStorageProvider(IOptions<FileSystemOptions> options, IServiceProvider serviceProvider)
+        public FileSystemStorageProvider(IOptions<ProviderOptions> options, IPublicUrlProvider publicUrlProvider = null, IExtendedPropertiesProvider extendedPropertiesProvider = null)
+            : base(options)
         {
-            this.options = options;
-            this.serviceProvider = serviceProvider;
+            this.publicUrlProvider = publicUrlProvider;
+            this.extendedPropertiesProvider = extendedPropertiesProvider;
         }
 
-        public string Name => "FileSystem";
+        public override string Name => ProviderName;
 
-        public IStore BuildStore(string storeName, IStorageStoreOptions storeOptions)
+        protected override IStore BuildStore(string storeName, StoreOptions storeOptions)
         {
-            var publicUrlProvider = this.serviceProvider.GetService<IPublicUrlProvider>();
-            var extendedPropertiesProvider = this.serviceProvider.GetService<IExtendedPropertiesProvider>();
-
             return new FileSystemStore(
                 storeName,
-                storeOptions.Parameters["Path"],
+                storeOptions.Path,
                 this.options.Value.RootPath,
                 publicUrlProvider,
                 extendedPropertiesProvider);

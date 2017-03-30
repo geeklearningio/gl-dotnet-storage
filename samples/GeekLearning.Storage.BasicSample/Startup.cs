@@ -33,15 +33,14 @@
             byte[] signingKey = new byte[512];
             rng.GetBytes(signingKey);
 
-            services.AddStorage()
+            services.AddStorage(this.Configuration.GetSection("Storage"))
                 .AddAzureStorage()
                 .AddFileSystemStorage(HostingEnvironement.ContentRootPath)
-                .AddFileSystemStorageServer(options=> {
+                .AddFileSystemStorageServer(options =>
+                {
                     options.SigningKey = signingKey;
                     options.BaseUri = new Uri("http://localhost:11149/");
                 });
-            
-            services.Configure<StorageOptions>(Configuration.GetSection("Storage"));
 
             services.AddScoped<TemplatesStore>();
         }
