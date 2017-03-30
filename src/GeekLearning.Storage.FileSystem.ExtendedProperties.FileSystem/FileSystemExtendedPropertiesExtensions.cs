@@ -8,9 +8,14 @@
 
     public static class FileSystemExtendedPropertiesExtensions
     {
-        public static IServiceCollection AddFileSystemExtendedProperties(this IServiceCollection services, Action<FileSystemExtendedPropertiesOptions> configure)
+        public static IServiceCollection AddFileSystemExtendedProperties(this IServiceCollection services, Action<FileSystemExtendedPropertiesOptions> configure = null)
         {
-            services.Configure<FileSystemExtendedPropertiesOptions>(configure);
+            if (configure == null)
+            {
+                configure = o => { };
+            }
+
+            services.Configure(configure);
             services.AddTransient<IExtendedPropertiesProvider, ExtendedPropertiesProvider>();
             return services;
         }

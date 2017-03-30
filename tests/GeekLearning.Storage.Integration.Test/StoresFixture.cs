@@ -39,8 +39,8 @@
 
             services.AddStorage()
                 .AddAzureStorage()
-                .AddFileSystemStorage(BasePath)
-                .AddFileSystemExtendedProperties(o => { });
+                .AddFileSystemStorage(this.FileSystemRootPath)
+                .AddFileSystemExtendedProperties();
 
             services.Configure<StorageOptions>(Configuration.GetSection("Storage"));
             services.Configure<TestStore>(Configuration.GetSection("TestStore"));
@@ -50,18 +50,50 @@
             ResetStores();
         }
 
+        public IConfigurationRoot Configuration { get; }
+
+        public IServiceProvider Services { get; }
+
+        public string BasePath { get; }
+
+        public string FileSystemRootPath => Path.Combine(this.BasePath, "FileVault");
+
+        public void Dispose()
+        {
+            this.DeleteRootResources();
+        }
+
+        private void DeleteRootResources()
+        {
+            if (this.container != null)
+            {
+                this.container.DeleteIfExistsAsync().Wait();
+            }
+
+            if (Directory.Exists(this.FileSystemRootPath))
+            {
+                Directory.Delete(this.FileSystemRootPath, true);
+            }
+        }
+
         private void ResetStores()
         {
-            ResetAzureStore();
-            ResetFileSystemStore();
+            this.DeleteRootResources();
+            this.ResetAzureStore();
+            this.ResetFileSystemStore();
         }
 
         private void ResetFileSystemStore()
         {
+            if (!Directory.Exists(this.FileSystemRootPath))
+            {
+                Directory.CreateDirectory(this.FileSystemRootPath);
+            }
+
             var directoryName = Configuration["Storage:Stores:filesystem:Parameters:Path"];
             var process = Process.Start(new ProcessStartInfo("robocopy.exe")
             {
-                Arguments = $"\"{Path.Combine(BasePath, "SampleDirectory")}\" \"{Path.Combine(BasePath, directoryName)}\" /MIR"
+                Arguments = $"\"{Path.Combine(this.BasePath, "SampleDirectory")}\" \"{Path.Combine(this.FileSystemRootPath, directoryName)}\" /MIR"
             });
 
             if (!process.WaitForExit(30000))
@@ -72,7 +104,7 @@
 
         private void ResetAzureStore()
         {
-            var azCopy = System.IO.Path.Combine(
+            var azCopy = Path.Combine(
                 Environment.ExpandEnvironmentVariables(Configuration["AzCopyPath"]),
                 "AzCopy.exe");
 
@@ -83,43 +115,17 @@
 
             var client = cloudStorageAccount.CreateCloudBlobClient();
 
-            container = client.GetContainerReference(containerName);
-            container.CreateAsync().Wait();
+            this.container = client.GetContainerReference(containerName);
+            this.container.CreateAsync().Wait();
 
             var process = Process.Start(new ProcessStartInfo(azCopy)
             {
-                Arguments = $"/Source:\"{System.IO.Path.Combine(BasePath, "SampleDirectory")}\" /Dest:\"{dest}\" /DestKey:{key} /S"
+                Arguments = $"/Source:\"{Path.Combine(this.BasePath, "SampleDirectory")}\" /Dest:\"{dest}\" /DestKey:{key} /S"
             });
 
             if (!process.WaitForExit(30000))
             {
                 throw new TimeoutException("Azure store was not reset properly");
-            }
-        }
-
-        public IConfigurationRoot Configuration { get; }
-
-        public IServiceProvider Services { get; }
-
-        public string BasePath { get; }
-
-        public void Dispose()
-        {
-            container.DeleteIfExistsAsync().Wait();
-
-            var fileSystemPath = Configuration["Storage:Stores:filesystem:Parameters:Path"];
-            var folderNameFormat = Configuration["Storage:ExtendedPropertiesFolderNameFormat"];
-
-            var directoryName = Path.Combine(BasePath, fileSystemPath);
-            if (Directory.Exists(directoryName))
-            {
-                Directory.Delete(directoryName, true);
-            }
-
-            directoryName = Path.Combine(BasePath, string.Format(folderNameFormat, fileSystemPath));
-            if (Directory.Exists(directoryName))
-            {
-                Directory.Delete(directoryName, true);
             }
         }
     }
