@@ -1,6 +1,7 @@
 ﻿namespace GeekLearning.Storage
 {
     using FileSystem;
+    using GeekLearning.Storage.FileSystem.Configuration;
     using GeekLearning.Storage.Internal;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
@@ -12,21 +13,21 @@
         public static IServiceCollection AddFileSystemStorage(this IServiceCollection services, string rootPath)
         {
             return services
-                .Configure<ProviderOptions>(options => options.RootPath = rootPath)
+                .Configure<FileSystemParsedOptions>(options => options.RootPath = rootPath)
                 .AddFileSystemStorage();
         }
 
         public static IServiceCollection AddFileSystemStorage(this IServiceCollection services)
         {
             return services
-                .AddSingleton<IConfigureOptions<ProviderOptions>, ConfigureProviderOptions<ProviderOptions, StoreOptions>>()
+                .AddSingleton<IConfigureOptions<FileSystemParsedOptions>, ConfigureProviderOptions<FileSystemParsedOptions, FileSystemProviderInstanceOptions, FileSystemStoreOptions, FileSystemScopedStoreOptions>>()
                 .AddFileSystemStorageServices();
         }
 
         public static IServiceCollection AddFileSystemStorage(this IServiceCollection services, IConfiguration configuration)
         {
             return services
-                .Configure<ProviderOptions>(configuration)
+                .Configure<FileSystemParsedOptions>(configuration)
                 .AddFileSystemStorageServices();
         }
 

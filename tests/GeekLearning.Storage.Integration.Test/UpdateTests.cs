@@ -20,7 +20,7 @@
             this.storeFixture = fixture;
         }
 
-        [Theory(DisplayName = nameof(WriteAllText)), InlineData("azure"), InlineData("filesystem")]
+        [Theory(DisplayName = nameof(WriteAllText)), InlineData("Store1"), InlineData("Store2"), InlineData("Store3"), InlineData("Store4")]
         public async Task WriteAllText(string storeName)
         {
             var storageFactory = this.storeFixture.Services.GetRequiredService<IStorageFactory>();
@@ -36,7 +36,7 @@
             Assert.Equal(textToWrite, readFromWrittenFile);
         }
 
-        [Theory(DisplayName = nameof(ETagShouldBeTheSameWithSameContent)), InlineData("azure"), InlineData("filesystem")]
+        [Theory(DisplayName = nameof(ETagShouldBeTheSameWithSameContent)), InlineData("Store1"), InlineData("Store2"), InlineData("Store3"), InlineData("Store4")]
         public async Task ETagShouldBeTheSameWithSameContent(string storeName)
         {
             var storageFactory = this.storeFixture.Services.GetRequiredService<IStorageFactory>();
@@ -51,7 +51,7 @@
             Assert.Equal(savedReference.Properties.ETag, readReference.Properties.ETag);
         }
 
-        [Theory(DisplayName = nameof(ETagShouldBeDifferentWithDifferentContent)), InlineData("azure"), InlineData("filesystem")]
+        [Theory(DisplayName = nameof(ETagShouldBeDifferentWithDifferentContent)), InlineData("Store1"), InlineData("Store2"), InlineData("Store3"), InlineData("Store4")]
         public async Task ETagShouldBeDifferentWithDifferentContent(string storeName)
         {
             var storageFactory = this.storeFixture.Services.GetRequiredService<IStorageFactory>();
@@ -67,7 +67,7 @@
             Assert.NotEqual(savedReference.Properties.ETag, updatedReference.Properties.ETag);
         }
 
-        [Theory(DisplayName = nameof(SaveStream)), InlineData("azure"), InlineData("filesystem")]
+        [Theory(DisplayName = nameof(SaveStream)), InlineData("Store1"), InlineData("Store2"), InlineData("Store3"), InlineData("Store4")]
         public async Task SaveStream(string storeName)
         {
             var storageFactory = this.storeFixture.Services.GetRequiredService<IStorageFactory>();
@@ -83,7 +83,7 @@
             Assert.Equal(textToWrite, readFromWrittenFile);
         }
 
-        [Theory(DisplayName = nameof(AddMetatadaRoundtrip)), InlineData("azure"), InlineData("filesystem")]
+        [Theory(DisplayName = nameof(AddMetatadaRoundtrip)), InlineData("Store1"), InlineData("Store2"), InlineData("Store3"), InlineData("Store4")]
         public async Task AddMetatadaRoundtrip(string storeName)
         {
             var storageFactory = this.storeFixture.Services.GetRequiredService<IStorageFactory>();
@@ -107,7 +107,7 @@
             Assert.Equal(id, actualId);
         }
 
-        [Theory(DisplayName = nameof(SaveMetatadaRoundtrip)), InlineData("azure"), InlineData("filesystem")]
+        [Theory(DisplayName = nameof(SaveMetatadaRoundtrip)), InlineData("Store1"), InlineData("Store2"), InlineData("Store3"), InlineData("Store4")]
         public async Task SaveMetatadaRoundtrip(string storeName)
         {
             var storageFactory = this.storeFixture.Services.GetRequiredService<IStorageFactory>();
@@ -131,7 +131,7 @@
             Assert.Equal(id, actualId);
         }
 
-        [Theory(DisplayName = nameof(ListMetatadaRoundtrip)), InlineData("azure"), InlineData("filesystem")]
+        [Theory(DisplayName = nameof(ListMetatadaRoundtrip)), InlineData("Store1"), InlineData("Store2"), InlineData("Store3"), InlineData("Store4")]
         public async Task ListMetatadaRoundtrip(string storeName)
         {
             var storageFactory = this.storeFixture.Services.GetRequiredService<IStorageFactory>();

@@ -1,10 +1,11 @@
 ﻿namespace GeekLearning.Storage
 {
+    using Configuration;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.DependencyInjection.Extensions;
 
-    public static class StorageExtensions
+    public static class StorageServiceCollectionExtensions
     {
         public static IServiceCollection AddStorage(this IServiceCollection services)
         {

@@ -7,7 +7,7 @@
     using Xunit;
 
     [Collection(nameof(IntegrationCollection))]
-    [Trait("Kind", "Integration")]
+    [Trait("Operation", "GenericIStore"), Trait("Kind", "Integration")]
     public class GenericIStoreTests
     {
         private StoresFixture storeFixture;

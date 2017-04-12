@@ -1,11 +1,23 @@
 ﻿namespace GeekLearning.Storage.Integration.Test
 {
-    using Microsoft.Extensions.Configuration;
+    using GeekLearning.Storage.Configuration;
 
-    public class TestStore : IStorageStoreOptions
+    public class TestStore : IStoreOptions
     {
-        public string Provider { get; set; }
+        public TestStore()
+        {
+            this.Name = "TestStore";
+            this.ProviderType = "FileSystem";
+        }
 
-        public IConfigurationSection Parameters { get; set; }
+        public string ProviderName { get; set; }
+
+        public string ProviderType { get; set; }
+
+        public AccessLevel AccessLevel { get; set; }
+
+        public string FolderName { get; set; }
+
+        public string Name { get; set; }
     }
 }

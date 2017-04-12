@@ -1,48 +1,48 @@
 ﻿namespace GeekLearning.Storage.Internal
 {
-    using Microsoft.Extensions.Configuration;
+    using GeekLearning.Storage.Configuration;
     using Microsoft.Extensions.Options;
     using System.Linq;
 
-    public class ConfigureProviderOptions<TProviderOptions, TStoreOptions> : IConfigureOptions<TProviderOptions>
-        where TProviderOptions : class, IProviderOptions<TStoreOptions>, new()
-        where TStoreOptions: class, IProviderStoreOptions, new()
+    public class ConfigureProviderOptions<TParsedOptions, TInstanceOptions, TStoreOptions, TScopedStoreOptions> : IConfigureOptions<TParsedOptions>
+        where TParsedOptions : class, IParsedOptions<TInstanceOptions, TStoreOptions, TScopedStoreOptions>
+        where TInstanceOptions : class, IProviderInstanceOptions, new()
+        where TStoreOptions : class, IStoreOptions, new()
+        where TScopedStoreOptions : class, IScopedStoreOptions, new()
     {
-        private readonly IOptions<StorageOptions> storageOptions;
+        private readonly StorageOptions storageOptions;
 
         public ConfigureProviderOptions(IOptions<StorageOptions> storageOptions)
         {
-            this.storageOptions = storageOptions;
+            this.storageOptions = storageOptions.Value;
         }
 
-        public void Configure(TProviderOptions options)
+        public void Configure(TParsedOptions options)
         {
-            var storageOptionsValue = this.storageOptions.Value;
-
-            if (storageOptionsValue == null)
+            if (this.storageOptions == null)
             {
                 return;
             }
 
-            if (storageOptionsValue.Providers != null
-                && storageOptionsValue.Providers.TryGetValue(options.ProviderName, out var providerConfigurationSection))
+            options.ParsedProviderInstances = this.storageOptions.Providers.Parse<TInstanceOptions>()
+                .Where(kvp => kvp.Value.Type == options.Name)
+                .ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+
+            var parsedStores = this.storageOptions.Stores.Parse<TStoreOptions>();
+            var parsedScopedStores = this.storageOptions.ScopedStores.Parse<TScopedStoreOptions>();
+
+            foreach (var parsedStore in parsedStores)
             {
-                ConfigurationBinder.Bind(providerConfigurationSection, options);
+                parsedStore.Value.Compute<TParsedOptions, TInstanceOptions, TStoreOptions, TScopedStoreOptions>(options);
             }
 
-            if (storageOptionsValue.Stores != null)
-            {
-                options.Stores = storageOptionsValue.Stores
-                    .Where(skvp => skvp.Value.Provider == options.ProviderName)
-                    .ToDictionary(
-                        skvp => skvp.Key,
-                        skvp =>
-                        {
-                            var storeOptions = new TStoreOptions();
-                            ConfigurationBinder.Bind(skvp.Value.Parameters, storeOptions);
-                            return storeOptions;
-                        });
-            }
+            options.ParsedStores = parsedStores
+                .Where(kvp => kvp.Value.ProviderType == options.Name)
+                .ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+
+            options.ParsedScopedStores = parsedScopedStores
+                .Where(kvp => kvp.Value.ProviderType == options.Name)
+                .ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
         }
     }
 }
