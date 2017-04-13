@@ -29,7 +29,9 @@
                 .AddJsonFile($"appsettings.development.json", optional: true)
                 .AddInMemoryCollection(new KeyValuePair<string, string>[] {
                     new KeyValuePair<string, string>("Storage:Stores:Store3:FolderName", $"Store3-{containerId}"),
-                    new KeyValuePair<string, string>("Storage:Stores:Store4:FolderName", $"Store4-{containerId}")
+                    new KeyValuePair<string, string>("Storage:Stores:Store4:FolderName", $"Store4-{containerId}"),
+                    new KeyValuePair<string, string>("Storage:Stores:Store5:FolderName", $"Store5-{containerId}"),
+                    new KeyValuePair<string, string>("Storage:Stores:Store6:FolderName", $"Store6-{containerId}"),
                 });
 
             this.Configuration = builder.Build();
