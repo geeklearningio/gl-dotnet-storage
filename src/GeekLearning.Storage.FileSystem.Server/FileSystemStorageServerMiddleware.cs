@@ -35,15 +35,13 @@
                 var storageFactory = context.RequestServices.GetRequiredService<IStorageFactory>();
 
                 if (this.fileSystemParsedOptions.ParsedStores.TryGetValue(storeName, out var storeOptions)
-                    && storeOptions.ProviderType == "FileSystem")
+                    && storeOptions.ProviderType == FileSystemStorageProvider.ProviderName)
                 {
-                    string access;
-                    // TODO: Fix options!
-                    //if (!storeOptions.Parameters.TryGetValue("Access", out access) && access != "Public")
-                    //{
-                    //    context.Response.StatusCode = StatusCodes.Status403Forbidden;
-                    //    return;
-                    //}
+                    if (storeOptions.AccessLevel != Storage.Configuration.AccessLevel.Public)
+                    {
+                        context.Response.StatusCode = StatusCodes.Status403Forbidden;
+                        return;
+                    }
 
                     IStore store = storageFactory.GetStore(storeName, storeOptions);
 
