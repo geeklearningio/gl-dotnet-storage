@@ -6,7 +6,7 @@
 
     public static class ConfigurationExtensions
     {
-        public static IReadOnlyDictionary<string, TOptions> Parse<TOptions>(this Dictionary<string, IConfigurationSection> unparsedConfiguration)
+        public static IReadOnlyDictionary<string, TOptions> Parse<TOptions>(this IReadOnlyDictionary<string, IConfigurationSection> unparsedConfiguration)
             where TOptions : class, INamedElementOptions, new()
         {
             if (unparsedConfiguration == null)
@@ -43,6 +43,15 @@
             }
 
             return null;
+        }
+
+        public static void Compute<TParsedOptions, TInstanceOptions, TStoreOptions, TScopedStoreOptions>(this TInstanceOptions parsedProviderInstance, TParsedOptions options)
+            where TParsedOptions : class, IParsedOptions<TInstanceOptions, TStoreOptions, TScopedStoreOptions>
+            where TInstanceOptions : class, IProviderInstanceOptions, new()
+            where TStoreOptions : class, IStoreOptions, new()
+            where TScopedStoreOptions : class, IScopedStoreOptions, new()
+        {
+            options.BindProviderInstanceOptions(parsedProviderInstance);
         }
 
         public static void Compute<TParsedOptions, TInstanceOptions, TStoreOptions, TScopedStoreOptions>(this TStoreOptions parsedStore, TParsedOptions options)

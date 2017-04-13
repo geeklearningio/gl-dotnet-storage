@@ -24,9 +24,16 @@
                 return;
             }
 
+            options.ConnectionStrings = this.storageOptions.ConnectionStrings;
+
             options.ParsedProviderInstances = this.storageOptions.Providers.Parse<TInstanceOptions>()
                 .Where(kvp => kvp.Value.Type == options.Name)
                 .ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+
+            foreach (var parsedProviderInstance in options.ParsedProviderInstances)
+            {
+                parsedProviderInstance.Value.Compute<TParsedOptions, TInstanceOptions, TStoreOptions, TScopedStoreOptions>(options);
+            }
 
             var parsedStores = this.storageOptions.Stores.Parse<TStoreOptions>();
             var parsedScopedStores = this.storageOptions.ScopedStores.Parse<TScopedStoreOptions>();

@@ -17,7 +17,7 @@
             this.storeFixture = fixture;
         }
 
-        [Theory(DisplayName = nameof(ListRootFiles)), InlineData("Store1"), InlineData("Store2"), InlineData("Store3"), InlineData("Store4")]
+        [Theory(DisplayName = nameof(ListRootFiles)), InlineData("Store1"), InlineData("Store2"), InlineData("Store3"), InlineData("Store4"), InlineData("Store5"), InlineData("Store6")]
         public async Task ListRootFiles(string storeName)
         {
             var storageFactory = this.storeFixture.Services.GetRequiredService<IStorageFactory>();
@@ -36,7 +36,7 @@
             Assert.Empty(unexpectedFiles);
         }
 
-        [Theory(DisplayName = nameof(ListEmptyPathFiles)), InlineData("Store1"), InlineData("Store2"), InlineData("Store3"), InlineData("Store4")]
+        [Theory(DisplayName = nameof(ListEmptyPathFiles)), InlineData("Store1"), InlineData("Store2"), InlineData("Store3"), InlineData("Store4"), InlineData("Store5"), InlineData("Store6")]
         public async Task ListEmptyPathFiles(string storeName)
         {
             var storageFactory = this.storeFixture.Services.GetRequiredService<IStorageFactory>();
@@ -55,7 +55,7 @@
             Assert.Empty(unexpectedFiles);
         }
 
-        [Theory(DisplayName = nameof(ListSubDirectoryFiles)), InlineData("Store1"), InlineData("Store2"), InlineData("Store3"), InlineData("Store4")]
+        [Theory(DisplayName = nameof(ListSubDirectoryFiles)), InlineData("Store1"), InlineData("Store2"), InlineData("Store3"), InlineData("Store4"), InlineData("Store5"), InlineData("Store6")]
         public async Task ListSubDirectoryFiles(string storeName)
         {
             var storageFactory = this.storeFixture.Services.GetRequiredService<IStorageFactory>();
@@ -74,7 +74,7 @@
             Assert.Empty(unexpectedFiles);
         }
 
-        [Theory(DisplayName = nameof(ListSubDirectoryFilesWithTrailingSlash)), InlineData("Store1"), InlineData("Store2"), InlineData("Store3"), InlineData("Store4")]
+        [Theory(DisplayName = nameof(ListSubDirectoryFilesWithTrailingSlash)), InlineData("Store1"), InlineData("Store2"), InlineData("Store3"), InlineData("Store4"), InlineData("Store5"), InlineData("Store6")]
         public async Task ListSubDirectoryFilesWithTrailingSlash(string storeName)
         {
             var storageFactory = this.storeFixture.Services.GetRequiredService<IStorageFactory>();
@@ -93,7 +93,7 @@
             Assert.Empty(unexpectedFiles);
         }
 
-        [Theory(DisplayName = nameof(ExtensionGlobbing)), InlineData("Store1"), InlineData("Store2"), InlineData("Store3"), InlineData("Store4")]
+        [Theory(DisplayName = nameof(ExtensionGlobbing)), InlineData("Store1"), InlineData("Store2"), InlineData("Store3"), InlineData("Store4"), InlineData("Store5"), InlineData("Store6")]
         public async Task ExtensionGlobbing(string storeName)
         {
             var storageFactory = this.storeFixture.Services.GetRequiredService<IStorageFactory>();
@@ -112,7 +112,7 @@
             Assert.Empty(unexpectedFiles);
         }
 
-        [Theory(DisplayName = nameof(FileNameGlobbing)), InlineData("Store1"), InlineData("Store2"), InlineData("Store3"), InlineData("Store4")]
+        [Theory(DisplayName = nameof(FileNameGlobbing)), InlineData("Store1"), InlineData("Store2"), InlineData("Store3"), InlineData("Store4"), InlineData("Store5"), InlineData("Store6")]
         public async Task FileNameGlobbing(string storeName)
         {
             var storageFactory = this.storeFixture.Services.GetRequiredService<IStorageFactory>();
@@ -131,7 +131,7 @@
             Assert.Empty(unexpectedFiles);
         }
 
-        [Theory(DisplayName = nameof(FileNameGlobbingAtRoot)), InlineData("Store1"), InlineData("Store2"), InlineData("Store3"), InlineData("Store4")]
+        [Theory(DisplayName = nameof(FileNameGlobbingAtRoot)), InlineData("Store1"), InlineData("Store2"), InlineData("Store3"), InlineData("Store4"), InlineData("Store5"), InlineData("Store6")]
         public async Task FileNameGlobbingAtRoot(string storeName)
         {
             var storageFactory = this.storeFixture.Services.GetRequiredService<IStorageFactory>();

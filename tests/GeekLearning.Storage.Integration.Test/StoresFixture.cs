@@ -38,7 +38,7 @@
 
             services.AddOptions();
 
-            services.AddStorage()
+            services.AddStorage(Configuration)
                 .AddAzureStorage()
                 .AddFileSystemStorage(this.FileSystemRootPath)
                 .AddFileSystemExtendedProperties();

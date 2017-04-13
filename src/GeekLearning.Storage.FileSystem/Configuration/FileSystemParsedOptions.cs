@@ -7,7 +7,7 @@
     {
         public string Name => FileSystemStorageProvider.ProviderName;
 
-        public string RootPath { get; set; }
+        public IReadOnlyDictionary<string, string> ConnectionStrings { get; set; }
 
         public IReadOnlyDictionary<string, FileSystemProviderInstanceOptions> ParsedProviderInstances { get; set; }
 
@@ -15,13 +15,22 @@
 
         public IReadOnlyDictionary<string, FileSystemScopedStoreOptions> ParsedScopedStores { get; set; }
 
+        public string RootPath { get; set; }
+
+        public void BindProviderInstanceOptions(FileSystemProviderInstanceOptions providerInstanceOptions)
+        {
+            if (string.IsNullOrEmpty(providerInstanceOptions.RootPath))
+            {
+                providerInstanceOptions.RootPath = this.RootPath;
+            }
+        }
+
         public void BindStoreOptions(FileSystemStoreOptions storeOptions, FileSystemProviderInstanceOptions providerInstanceOptions = null)
         {
             if (string.IsNullOrEmpty(storeOptions.RootPath))
             {
                 if (providerInstanceOptions != null
-                    && storeOptions.ProviderName == providerInstanceOptions.Name
-                    && !string.IsNullOrEmpty(providerInstanceOptions.RootPath))
+                    && storeOptions.ProviderName == providerInstanceOptions.Name)
                 {
                     storeOptions.RootPath = providerInstanceOptions.RootPath;
                 }

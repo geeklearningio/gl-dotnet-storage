@@ -9,11 +9,15 @@
     {
         string Name { get; }
 
+        IReadOnlyDictionary<string, string> ConnectionStrings { get; set; }
+
         IReadOnlyDictionary<string, TInstanceOptions> ParsedProviderInstances { get; set; }
 
         IReadOnlyDictionary<string, TStoreOptions> ParsedStores { get; set; }
 
         IReadOnlyDictionary<string, TScopedStoreOptions> ParsedScopedStores { get; set; }
+
+        void BindProviderInstanceOptions(TInstanceOptions providerInstanceOptions);
 
         void BindStoreOptions(TStoreOptions storeOptions, TInstanceOptions providerInstanceOptions = null);
     }
