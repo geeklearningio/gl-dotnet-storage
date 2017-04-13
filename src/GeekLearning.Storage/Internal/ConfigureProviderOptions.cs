@@ -8,7 +8,7 @@
         where TParsedOptions : class, IParsedOptions<TInstanceOptions, TStoreOptions, TScopedStoreOptions>
         where TInstanceOptions : class, IProviderInstanceOptions, new()
         where TStoreOptions : class, IStoreOptions, new()
-        where TScopedStoreOptions : class, IScopedStoreOptions, new()
+        where TScopedStoreOptions : class, TStoreOptions, IScopedStoreOptions, new()
     {
         private readonly StorageOptions storageOptions;
 
@@ -36,8 +36,6 @@
             }
 
             var parsedStores = this.storageOptions.Stores.Parse<TStoreOptions>();
-            var parsedScopedStores = this.storageOptions.ScopedStores.Parse<TScopedStoreOptions>();
-
             foreach (var parsedStore in parsedStores)
             {
                 parsedStore.Value.Compute<TParsedOptions, TInstanceOptions, TStoreOptions, TScopedStoreOptions>(options);
@@ -46,6 +44,12 @@
             options.ParsedStores = parsedStores
                 .Where(kvp => kvp.Value.ProviderType == options.Name)
                 .ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+
+            var parsedScopedStores = this.storageOptions.ScopedStores.Parse<TScopedStoreOptions>();
+            foreach (var parsedScopedStore in parsedScopedStores)
+            {
+                parsedScopedStore.Value.Compute<TParsedOptions, TInstanceOptions, TStoreOptions, TScopedStoreOptions>(options);
+            }
 
             options.ParsedScopedStores = parsedScopedStores
                 .Where(kvp => kvp.Value.ProviderType == options.Name)

@@ -1,5 +1,6 @@
 ﻿namespace GeekLearning.Storage.Internal
 {
+    using System;
     using Configuration;
     using Microsoft.Extensions.Options;
 
@@ -7,7 +8,7 @@
         where TParsedOptions : class, IParsedOptions<TInstanceOptions, TStoreOptions, TScopedStoreOptions>, new()
         where TInstanceOptions : class, IProviderInstanceOptions, new()
         where TStoreOptions : class, IStoreOptions, new()
-        where TScopedStoreOptions : class, IScopedStoreOptions, new()
+        where TScopedStoreOptions : class, TStoreOptions, IScopedStoreOptions
     {
         protected readonly TParsedOptions options;
 
@@ -20,7 +21,7 @@
 
         public IStore BuildStore(string storeName)
         {
-            return this.BuildStore(storeName, this.options.GetStoreConfiguration(storeName));
+            return this.BuildStoreInternal(storeName, this.options.GetStoreConfiguration(storeName));
         }
 
         public IStore BuildStore(string storeName, IStoreOptions storeOptions)
@@ -30,11 +31,27 @@
                 throw new Exceptions.BadStoreProviderException(this.Name, storeName);
             }
            
-            return this.BuildStore(
+            return this.BuildStoreInternal(
                 storeName, 
                 storeOptions.ParseStoreOptions<TParsedOptions, TInstanceOptions, TStoreOptions, TScopedStoreOptions>(options));
         }
 
-        protected abstract IStore BuildStore(string storeName, TStoreOptions storeOptions);
+        public IStore BuildScopedStore(string storeName, params object[] args)
+        {
+            var scopedStoreOptions = this.options.GetScopedStoreConfiguration(storeName);
+
+            try
+            {
+                scopedStoreOptions.FolderName = string.Format(scopedStoreOptions.FolderNameFormat, args);
+            }
+            catch (Exception ex)
+            {
+                throw new Exceptions.BadScopedStoreConfiguration(storeName, "Cannot format folder name. See InnerException for details.", ex);
+            }
+
+            return this.BuildStoreInternal(storeName, scopedStoreOptions.ParseStoreOptions<TParsedOptions, TInstanceOptions, TStoreOptions, TScopedStoreOptions>(options));
+        }
+
+        protected abstract IStore BuildStoreInternal(string storeName, TStoreOptions storeOptions);
     }
 }

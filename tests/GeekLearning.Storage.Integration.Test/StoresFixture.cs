@@ -64,6 +64,8 @@
 
         public string FileSystemRootPath => Path.Combine(this.BasePath, "FileVault");
 
+        public string FileSystemSecondaryRootPath => Path.Combine(this.BasePath, "FileVault2");
+
         public StorageOptions StorageOptions { get; }
 
         public AzureParsedOptions AzureParsedOptions { get; }
@@ -91,6 +93,11 @@
             if (Directory.Exists(this.FileSystemRootPath))
             {
                 Directory.Delete(this.FileSystemRootPath, true);
+            }
+
+            if (Directory.Exists(this.FileSystemSecondaryRootPath))
+            {
+                Directory.Delete(this.FileSystemSecondaryRootPath, true);
             }
         }
 

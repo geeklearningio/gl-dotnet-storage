@@ -26,6 +26,11 @@
             return this.GetProvider(this.options.GetStoreConfiguration(storeName)).BuildStore(storeName);
         }
 
+        public IStore GetScopedStore(string storeName, params object[] args)
+        {
+            return this.GetProvider(this.options.GetScopedStoreConfiguration(storeName)).BuildScopedStore(storeName, args);
+        }
+
         public bool TryGetStore(string storeName, out IStore store)
         {
             var configuration = this.options.GetStoreConfiguration(storeName, throwIfNotFound: false);

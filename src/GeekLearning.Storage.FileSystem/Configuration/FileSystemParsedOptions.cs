@@ -2,6 +2,7 @@
 {
     using GeekLearning.Storage.Configuration;
     using System.Collections.Generic;
+    using System.IO;
 
     public class FileSystemParsedOptions : IParsedOptions<FileSystemProviderInstanceOptions, FileSystemStoreOptions, FileSystemScopedStoreOptions>
     {
@@ -22,6 +23,13 @@
             if (string.IsNullOrEmpty(providerInstanceOptions.RootPath))
             {
                 providerInstanceOptions.RootPath = this.RootPath;
+            }
+            else
+            {
+                if (!Path.IsPathRooted(providerInstanceOptions.RootPath))
+                {
+                    providerInstanceOptions.RootPath = Path.Combine(this.RootPath, providerInstanceOptions.RootPath);
+                }
             }
         }
 

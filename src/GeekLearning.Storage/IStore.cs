@@ -8,6 +8,8 @@
     {
         string Name { get; }
 
+        Task InitAsync();
+
         Task<IFileReference[]> ListAsync(string path, bool recursive, bool withMetadata);
 
         Task<IFileReference[]> ListAsync(string path, string searchPattern, bool recursive, bool withMetadata);

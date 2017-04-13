@@ -16,7 +16,7 @@
 
         public override string Name => ProviderName;
 
-        protected override IStore BuildStore(string storeName, AzureStoreOptions storeOptions)
+        protected override IStore BuildStoreInternal(string storeName, AzureStoreOptions storeOptions)
         {
             return new AzureStore(storeOptions);
         }

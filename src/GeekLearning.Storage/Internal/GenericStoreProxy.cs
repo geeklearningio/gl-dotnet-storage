@@ -21,26 +21,28 @@
             this.innerStore = factory.GetStore(nameof(TOptions), options.Value);
         }
 
-        public string Name => innerStore.Name;
+        public string Name => this.innerStore.Name;
 
-        public Task DeleteAsync(IPrivateFileReference file) => innerStore.DeleteAsync(file);
+        public Task InitAsync() => this.innerStore.InitAsync();
 
-        public Task<IFileReference> GetAsync(Uri file, bool withMetadata) => innerStore.GetAsync(file, withMetadata);
+        public Task DeleteAsync(IPrivateFileReference file) => this.innerStore.DeleteAsync(file);
 
-        public Task<IFileReference> GetAsync(IPrivateFileReference file, bool withMetadata) => innerStore.GetAsync(file, withMetadata);
+        public Task<IFileReference> GetAsync(Uri file, bool withMetadata) => this.innerStore.GetAsync(file, withMetadata);
 
-        public Task<IFileReference[]> ListAsync(string path, bool recursive, bool withMetadata) => innerStore.ListAsync(path, recursive, withMetadata);
+        public Task<IFileReference> GetAsync(IPrivateFileReference file, bool withMetadata) => this.innerStore.GetAsync(file, withMetadata);
 
-        public Task<IFileReference[]> ListAsync(string path, string searchPattern, bool recursive, bool withMetadata) => innerStore.ListAsync(path, searchPattern, recursive, withMetadata);
+        public Task<IFileReference[]> ListAsync(string path, bool recursive, bool withMetadata) => this.innerStore.ListAsync(path, recursive, withMetadata);
 
-        public Task<byte[]> ReadAllBytesAsync(IPrivateFileReference file) => innerStore.ReadAllBytesAsync(file);
+        public Task<IFileReference[]> ListAsync(string path, string searchPattern, bool recursive, bool withMetadata) => this.innerStore.ListAsync(path, searchPattern, recursive, withMetadata);
 
-        public Task<string> ReadAllTextAsync(IPrivateFileReference file) => innerStore.ReadAllTextAsync(file);
+        public Task<byte[]> ReadAllBytesAsync(IPrivateFileReference file) => this.innerStore.ReadAllBytesAsync(file);
 
-        public Task<Stream> ReadAsync(IPrivateFileReference file) => innerStore.ReadAsync(file);
+        public Task<string> ReadAllTextAsync(IPrivateFileReference file) => this.innerStore.ReadAllTextAsync(file);
 
-        public Task<IFileReference> SaveAsync(Stream data, IPrivateFileReference file, string contentType) => innerStore.SaveAsync(data, file, contentType);
+        public Task<Stream> ReadAsync(IPrivateFileReference file) => this.innerStore.ReadAsync(file);
 
-        public Task<IFileReference> SaveAsync(byte[] data, IPrivateFileReference file, string contentType) => innerStore.SaveAsync(data, file, contentType);
+        public Task<IFileReference> SaveAsync(Stream data, IPrivateFileReference file, string contentType) => this.innerStore.SaveAsync(data, file, contentType);
+
+        public Task<IFileReference> SaveAsync(byte[] data, IPrivateFileReference file, string contentType) => this.innerStore.SaveAsync(data, file, contentType);
     }
 }

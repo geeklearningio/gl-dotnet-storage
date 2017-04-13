@@ -20,7 +20,7 @@
 
         public override string Name => ProviderName;
 
-        protected override IStore BuildStore(string storeName, FileSystemStoreOptions storeOptions)
+        protected override IStore BuildStoreInternal(string storeName, FileSystemStoreOptions storeOptions)
         {
             return new FileSystemStore(
                 storeOptions,

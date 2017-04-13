@@ -20,10 +20,10 @@
                     kvp => BindOptions<TOptions>(kvp));
         }
 
-        public static IStoreOptions GetStoreConfiguration<TInstanceOptions, TStoreOptions, TScopedStoreOptions>(this IParsedOptions<TInstanceOptions, TStoreOptions, TScopedStoreOptions> parsedOptions, string storeName, bool throwIfNotFound = true)
+        public static TStoreOptions GetStoreConfiguration<TInstanceOptions, TStoreOptions, TScopedStoreOptions>(this IParsedOptions<TInstanceOptions, TStoreOptions, TScopedStoreOptions> parsedOptions, string storeName, bool throwIfNotFound = true)
             where TInstanceOptions : class, IProviderInstanceOptions
             where TStoreOptions : class, IStoreOptions
-            where TScopedStoreOptions : class, IScopedStoreOptions
+            where TScopedStoreOptions : class, TStoreOptions, IScopedStoreOptions
         {
             parsedOptions.ParsedStores.TryGetValue(storeName, out var storeOptions);
             if (storeOptions != null)
@@ -31,6 +31,19 @@
                 return storeOptions;
             }
 
+            if (throwIfNotFound)
+            {
+                throw new Exceptions.StoreNotFoundException(storeName);
+            }
+
+            return null;
+        }
+
+        public static TScopedStoreOptions GetScopedStoreConfiguration<TInstanceOptions, TStoreOptions, TScopedStoreOptions>(this IParsedOptions<TInstanceOptions, TStoreOptions, TScopedStoreOptions> parsedOptions, string storeName, bool throwIfNotFound = true)
+            where TInstanceOptions : class, IProviderInstanceOptions
+            where TStoreOptions : class, IStoreOptions
+            where TScopedStoreOptions : class, TStoreOptions, IScopedStoreOptions
+        {
             parsedOptions.ParsedScopedStores.TryGetValue(storeName, out var scopedStoreOptions);
             if (scopedStoreOptions != null)
             {
@@ -49,7 +62,7 @@
             where TParsedOptions : class, IParsedOptions<TInstanceOptions, TStoreOptions, TScopedStoreOptions>
             where TInstanceOptions : class, IProviderInstanceOptions, new()
             where TStoreOptions : class, IStoreOptions, new()
-            where TScopedStoreOptions : class, IScopedStoreOptions, new()
+            where TScopedStoreOptions : class, TStoreOptions, IScopedStoreOptions
         {
             options.BindProviderInstanceOptions(parsedProviderInstance);
         }
@@ -58,7 +71,7 @@
             where TParsedOptions : class, IParsedOptions<TInstanceOptions, TStoreOptions, TScopedStoreOptions>
             where TInstanceOptions : class, IProviderInstanceOptions, new()
             where TStoreOptions : class, IStoreOptions, new()
-            where TScopedStoreOptions : class, IScopedStoreOptions, new()
+            where TScopedStoreOptions : class, TStoreOptions, IScopedStoreOptions
         {
             if (string.IsNullOrEmpty(parsedStore.FolderName))
             {
@@ -84,7 +97,7 @@
             where TParsedOptions : class, IParsedOptions<TInstanceOptions, TStoreOptions, TScopedStoreOptions>, new()
             where TInstanceOptions : class, IProviderInstanceOptions, new()
             where TStoreOptions : class, IStoreOptions, new()
-            where TScopedStoreOptions : class, IScopedStoreOptions, new()
+            where TScopedStoreOptions : class, TStoreOptions, IScopedStoreOptions
         {
             if (!(storeOptions is TStoreOptions parsedStoreOptions))
             {

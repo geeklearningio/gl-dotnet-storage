@@ -8,6 +8,8 @@
 
         IStore GetStore(string storeName);
 
+        IStore GetScopedStore(string storeName, params object[] args);
+
         bool TryGetStore(string storeName, out IStore store);
 
         bool TryGetStore(string storeName, out IStore store, string provider);

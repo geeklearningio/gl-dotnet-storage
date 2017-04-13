@@ -37,6 +37,11 @@
 
         public string Name => this.storeOptions.Name;
 
+        public Task InitAsync()
+        {
+            return this.container.Value.CreateIfNotExistsAsync();
+        }
+
         public async Task<IFileReference[]> ListAsync(string path, bool recursive, bool withMetadata)
         {
             if (string.IsNullOrWhiteSpace(path))

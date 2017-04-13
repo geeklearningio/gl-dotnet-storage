@@ -2,7 +2,8 @@
 {
     using GeekLearning.Storage.Configuration;
 
-    public class FileSystemScopedStoreOptions : ScopedStoreOptions
+    public class FileSystemScopedStoreOptions : FileSystemStoreOptions, IScopedStoreOptions
     {
+        public string FolderNameFormat { get; set; }
     }
 }

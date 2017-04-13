@@ -40,6 +40,16 @@
 
         internal string AbsolutePath => storeOptions.AbsolutePath;
 
+        public Task InitAsync()
+        {
+            if (!Directory.Exists(this.AbsolutePath))
+            {
+                Directory.CreateDirectory(this.AbsolutePath);
+            }
+
+            return Task.FromResult(0);
+        }
+
         public async Task<IFileReference[]> ListAsync(string path, bool recursive, bool withMetadata)
         {
             var directoryPath = (string.IsNullOrEmpty(path) || path == "/" || path == "\\") ? this.AbsolutePath : Path.Combine(this.AbsolutePath, path);

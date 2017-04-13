@@ -5,7 +5,7 @@
     public interface IParsedOptions<TInstanceOptions, TStoreOptions, TScopedStoreOptions>
         where TInstanceOptions : class, IProviderInstanceOptions
         where TStoreOptions : class, IStoreOptions
-        where TScopedStoreOptions : class, IScopedStoreOptions
+        where TScopedStoreOptions : class, TStoreOptions, IScopedStoreOptions
     {
         string Name { get; }
 

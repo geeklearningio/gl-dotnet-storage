@@ -2,7 +2,8 @@
 {
     using GeekLearning.Storage.Configuration;
 
-    public class AzureScopedStoreOptions : ScopedStoreOptions
+    public class AzureScopedStoreOptions : AzureStoreOptions, IScopedStoreOptions
     {
+        public string FolderNameFormat { get; set; }
     }
 }
