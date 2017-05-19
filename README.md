@@ -26,3 +26,4 @@ We don't support for Amazon S3, but it is one of our high priority objective.
 
 You can head to our introduction [blog post](http://geeklearning.io/dotnet-core-storage-cloud-or-file-system-storage-made-easy/), 
 or to the [wiki](https://github.com/geeklearningio/gl-dotnet-storage/wiki).
+
