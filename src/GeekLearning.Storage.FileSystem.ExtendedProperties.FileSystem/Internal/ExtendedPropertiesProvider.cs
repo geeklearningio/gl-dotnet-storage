@@ -9,7 +9,6 @@
     public class ExtendedPropertiesProvider : IExtendedPropertiesProvider
     {
         private readonly FileSystemExtendedPropertiesOptions options;
-        private readonly IStorageFactory storageFactory;
 
         public ExtendedPropertiesProvider(
             IOptions<FileSystemExtendedPropertiesOptions> options)

@@ -1,5 +1,6 @@
 ﻿namespace GeekLearning.Storage.FileSystem
 {
+    using GeekLearning.Storage.FileSystem.Configuration;
     using System;
     using System.Collections.Generic;
     using System.IO;
@@ -9,33 +10,32 @@
 
     public class FileSystemStore : IStore
     {
+        private readonly FileSystemStoreOptions storeOptions;
         private readonly IPublicUrlProvider publicUrlProvider;
         private readonly IExtendedPropertiesProvider extendedPropertiesProvider;
 
-        public FileSystemStore(string storeName, string path, string rootPath, IPublicUrlProvider publicUrlProvider, IExtendedPropertiesProvider extendedPropertiesProvider)
+        public FileSystemStore(FileSystemStoreOptions storeOptions, IPublicUrlProvider publicUrlProvider, IExtendedPropertiesProvider extendedPropertiesProvider)
         {
-            if (string.IsNullOrEmpty(path))
-            {
-                throw new ArgumentNullException("path");
-            }
+            storeOptions.Validate();
 
-            if (Path.IsPathRooted(path))
-            {
-                this.AbsolutePath = path;
-            }
-            else
-            {
-                this.AbsolutePath = Path.Combine(rootPath, path);
-            }
-
-            this.Name = storeName;
+            this.storeOptions = storeOptions;
             this.publicUrlProvider = publicUrlProvider;
             this.extendedPropertiesProvider = extendedPropertiesProvider;
         }
 
-        public string Name { get; }
+        public string Name => storeOptions.Name;
 
-        internal string AbsolutePath { get; }
+        internal string AbsolutePath => storeOptions.AbsolutePath;
+
+        public Task InitAsync()
+        {
+            if (!Directory.Exists(this.AbsolutePath))
+            {
+                Directory.CreateDirectory(this.AbsolutePath);
+            }
+
+            return Task.FromResult(0);
+        }
 
         public async Task<IFileReference[]> ListAsync(string path, bool recursive, bool withMetadata)
         {

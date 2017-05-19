@@ -1,5 +1,6 @@
 ﻿namespace GeekLearning.Storage.Azure
 {
+    using GeekLearning.Storage.Azure.Configuration;
     using Microsoft.WindowsAzure.Storage;
     using Microsoft.WindowsAzure.Storage.Blob;
     using Microsoft.WindowsAzure.Storage.Core;
@@ -11,28 +12,40 @@
 
     public class AzureStore : IStore
     {
-        private Lazy<CloudBlobClient> client;
-        private Lazy<CloudBlobContainer> container;
+        private readonly AzureStoreOptions storeOptions;
+        private readonly Lazy<CloudBlobClient> client;
+        private readonly Lazy<CloudBlobContainer> container;
 
-        public AzureStore(string storeName, string connectionString, string containerName)
+        public AzureStore(AzureStoreOptions storeOptions)
         {
-            this.Name = storeName;
+            storeOptions.Validate();
 
-            if (string.IsNullOrWhiteSpace(connectionString))
-            {
-                throw new ArgumentNullException("connectionString");
-            }
-
-            if (string.IsNullOrWhiteSpace(containerName))
-            {
-                throw new ArgumentNullException("containerName");
-            }
-
-            this.client = new Lazy<CloudBlobClient>(() => CloudStorageAccount.Parse(connectionString).CreateCloudBlobClient());
-            this.container = new Lazy<CloudBlobContainer>(() => this.client.Value.GetContainerReference(containerName));
+            this.storeOptions = storeOptions;
+            this.client = new Lazy<CloudBlobClient>(() => CloudStorageAccount.Parse(storeOptions.ConnectionString).CreateCloudBlobClient());
+            this.container = new Lazy<CloudBlobContainer>(() => this.client.Value.GetContainerReference(storeOptions.FolderName));
         }
 
-        public string Name { get; }
+        public string Name => this.storeOptions.Name;
+
+        public Task InitAsync()
+        {
+            BlobContainerPublicAccessType accessType;
+            switch (this.storeOptions.AccessLevel)
+            {
+                case Storage.Configuration.AccessLevel.Public:
+                    accessType = BlobContainerPublicAccessType.Container;
+                    break;
+                case Storage.Configuration.AccessLevel.Confidential:
+                    accessType = BlobContainerPublicAccessType.Blob;
+                    break;
+                case Storage.Configuration.AccessLevel.Private:
+                default:
+                    accessType = BlobContainerPublicAccessType.Off;
+                    break;
+            }
+
+            return this.container.Value.CreateIfNotExistsAsync(accessType, null, null);
+        }
 
         public async Task<IFileReference[]> ListAsync(string path, bool recursive, bool withMetadata)
         {

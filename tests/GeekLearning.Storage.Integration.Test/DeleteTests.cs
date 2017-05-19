@@ -16,7 +16,7 @@
             this.storeFixture = fixture;
         }
 
-        [Theory(DisplayName = nameof(Delete)), InlineData("azure"), InlineData("filesystem")]
+        [Theory(DisplayName = nameof(Delete)), InlineData("Store1"), InlineData("Store2"), InlineData("Store3"), InlineData("Store4"), InlineData("Store5"), InlineData("Store6")]
         public async Task Delete(string storeName)
         {
             var storageFactory = this.storeFixture.Services.GetRequiredService<IStorageFactory>();
