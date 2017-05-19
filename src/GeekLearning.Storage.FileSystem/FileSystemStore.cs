@@ -16,20 +16,7 @@
 
         public FileSystemStore(FileSystemStoreOptions storeOptions, IPublicUrlProvider publicUrlProvider, IExtendedPropertiesProvider extendedPropertiesProvider)
         {
-            // TODO: Implement Validate method on options
-            //if (string.IsNullOrEmpty(path))
-            //{
-            //    throw new ArgumentNullException("path");
-            //}
-
-            //if (Path.IsPathRooted(path))
-            //{
-            //    this.AbsolutePath = path;
-            //}
-            //else
-            //{
-            //    this.AbsolutePath = Path.Combine(rootPath, path);
-            //}
+            storeOptions.Validate();
 
             this.storeOptions = storeOptions;
             this.publicUrlProvider = publicUrlProvider;

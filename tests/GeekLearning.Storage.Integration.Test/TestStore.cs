@@ -1,6 +1,8 @@
 ﻿namespace GeekLearning.Storage.Integration.Test
 {
     using GeekLearning.Storage.Configuration;
+    using System.Collections.Generic;
+    using System.Linq;
 
     public class TestStore : IStoreOptions
     {
@@ -19,5 +21,10 @@
         public string FolderName { get; set; }
 
         public string Name { get; set; }
+
+        public IEnumerable<IOptionError> Validate(bool throwOnError = true)
+        {
+            return Enumerable.Empty<IOptionError>();
+        }
     }
 }

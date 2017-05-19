@@ -18,19 +18,9 @@
 
         public AzureStore(AzureStoreOptions storeOptions)
         {
+            storeOptions.Validate();
+
             this.storeOptions = storeOptions;
-
-            // TODO: Create Validate method in IStoreOptions
-            //if (string.IsNullOrWhiteSpace(connectionString))
-            //{
-            //    throw new ArgumentNullException("connectionString");
-            //}
-
-            //if (string.IsNullOrWhiteSpace(containerName))
-            //{
-            //    throw new ArgumentNullException("containerName");
-            //}
-
             this.client = new Lazy<CloudBlobClient>(() => CloudStorageAccount.Parse(storeOptions.ConnectionString).CreateCloudBlobClient());
             this.container = new Lazy<CloudBlobContainer>(() => this.client.Value.GetContainerReference(storeOptions.FolderName));
         }
@@ -39,7 +29,22 @@
 
         public Task InitAsync()
         {
-            return this.container.Value.CreateIfNotExistsAsync();
+            BlobContainerPublicAccessType accessType;
+            switch (this.storeOptions.AccessLevel)
+            {
+                case Storage.Configuration.AccessLevel.Public:
+                    accessType = BlobContainerPublicAccessType.Container;
+                    break;
+                case Storage.Configuration.AccessLevel.Confidential:
+                    accessType = BlobContainerPublicAccessType.Blob;
+                    break;
+                case Storage.Configuration.AccessLevel.Private:
+                default:
+                    accessType = BlobContainerPublicAccessType.Off;
+                    break;
+            }
+
+            return this.container.Value.CreateIfNotExistsAsync(accessType, null, null);
         }
 
         public async Task<IFileReference[]> ListAsync(string path, bool recursive, bool withMetadata)
