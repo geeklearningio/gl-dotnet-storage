@@ -23,6 +23,15 @@
             this.storeOptions = storeOptions;
             this.client = new Lazy<CloudBlobClient>(() => CloudStorageAccount.Parse(storeOptions.ConnectionString).CreateCloudBlobClient());
             this.container = new Lazy<CloudBlobContainer>(() => this.client.Value.GetContainerReference(storeOptions.FolderName));
+
+
+            var policy = new SharedAccessBlobPolicy()
+            {
+                
+            };
+
+            this.container.Value.GetSharedAccessSignature()
+
         }
 
         public string Name => this.storeOptions.Name;
