@@ -131,6 +131,30 @@
             Assert.Equal(id, actualId);
         }
 
+        [Theory(DisplayName = nameof(SaveEncodedMetatadaRoundtrip)), InlineData("Store1"), InlineData("Store2"), InlineData("Store3"), InlineData("Store4"), InlineData("Store5"), InlineData("Store6")]
+        public async Task SaveEncodedMetatadaRoundtrip(string storeName)
+        {
+            var storageFactory = this.storeFixture.Services.GetRequiredService<IStorageFactory>();
+
+            var store = storageFactory.GetStore(storeName);
+
+            var testFile = "Metadata/TextFile.txt";
+
+            var file = await store.GetAsync(testFile, withMetadata: true);
+
+            var name = "ï";
+
+            file.Properties.Metadata["name"] = name;
+
+            await file.SavePropertiesAsync();
+
+            file = await store.GetAsync(testFile, withMetadata: true);
+
+            var actualName = file.Properties.Metadata["name"];
+
+            Assert.Equal(name, actualName);
+        }
+
         [Theory(DisplayName = nameof(ListMetatadaRoundtrip)), InlineData("Store1"), InlineData("Store2"), InlineData("Store3"), InlineData("Store4"), InlineData("Store5"), InlineData("Store6")]
         public async Task ListMetatadaRoundtrip(string storeName)
         {

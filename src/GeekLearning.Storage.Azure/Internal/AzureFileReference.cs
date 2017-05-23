@@ -8,13 +8,13 @@
 
     public class AzureFileReference : IFileReference
     {
-        private Lazy<IFileProperties> propertiesLazy;
+        private Lazy<AzureFileProperties> propertiesLazy;
 
         public AzureFileReference(string path, ICloudBlob cloudBlob, bool withMetadata)
         {
             this.Path = path;
             this.CloudBlob = cloudBlob;
-            this.propertiesLazy = new Lazy<IFileProperties>(() =>
+            this.propertiesLazy = new Lazy<AzureFileProperties>(() =>
             {
                 if (withMetadata && cloudBlob.Metadata != null && cloudBlob.Properties != null)
                 {
@@ -84,10 +84,9 @@
             return (await this.ReadInMemoryAsync()).ToArray();
         }
 
-        public async Task SavePropertiesAsync()
+        public Task SavePropertiesAsync()
         {
-            await this.CloudBlob.SetPropertiesAsync();
-            await this.CloudBlob.SetMetadataAsync();
+            return this.propertiesLazy.Value.SaveAsync();
         }
     }
 }
