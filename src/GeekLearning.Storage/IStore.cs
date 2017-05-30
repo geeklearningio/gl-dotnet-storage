@@ -29,5 +29,7 @@
         Task<IFileReference> SaveAsync(byte[] data, IPrivateFileReference file, string contentType);
 
         Task<IFileReference> SaveAsync(Stream data, IPrivateFileReference file, string contentType);
+
+        Task<string> GetSharedAccessSignatureAsync(ISharedAccessPolicy policy);
     }
 }

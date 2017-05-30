@@ -148,6 +148,11 @@
             return fileReference;
         }
 
+        public Task<string> GetSharedAccessSignatureAsync(ISharedAccessPolicy policy)
+        {
+            throw new NotSupportedException();
+        }
+
         private async Task<Internal.FileSystemFileReference> InternalGetAsync(IPrivateFileReference file, bool withMetadata = false, bool checkIfExists = true)
         {
             var fileSystemFile = file as Internal.FileSystemFileReference;

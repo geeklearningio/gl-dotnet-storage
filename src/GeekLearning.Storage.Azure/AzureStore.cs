@@ -182,6 +182,55 @@
             return reference;
         }
 
+        public Task<string> GetSharedAccessSignatureAsync(ISharedAccessPolicy policy)
+        {
+            var adHocPolicy = new SharedAccessBlobPolicy()
+            {
+                SharedAccessStartTime = policy.StartTime,
+                SharedAccessExpiryTime = policy.ExpiryTime,
+                Permissions = FromGenericToAzure(policy.Permissions),
+            };
+
+            return Task.FromResult(this.container.Value.GetSharedAccessSignature(adHocPolicy));
+        }
+
+        internal static SharedAccessBlobPermissions FromGenericToAzure(SharedAccessPermissions permissions)
+        {
+            var result = SharedAccessBlobPermissions.None;
+
+            if (permissions.HasFlag(SharedAccessPermissions.Add))
+            {
+                result |= SharedAccessBlobPermissions.Add;
+            }
+
+            if (permissions.HasFlag(SharedAccessPermissions.Create))
+            {
+                result |= SharedAccessBlobPermissions.Create;
+            }
+
+            if (permissions.HasFlag(SharedAccessPermissions.Delete))
+            {
+                result |= SharedAccessBlobPermissions.Delete;
+            }
+
+            if (permissions.HasFlag(SharedAccessPermissions.List))
+            {
+                result |= SharedAccessBlobPermissions.List;
+            }
+
+            if (permissions.HasFlag(SharedAccessPermissions.Read))
+            {
+                result |= SharedAccessBlobPermissions.Read;
+            }
+
+            if (permissions.HasFlag(SharedAccessPermissions.Write))
+            {
+                result |= SharedAccessBlobPermissions.Write;
+            }
+
+            return result;
+        }
+
         private async Task<Internal.AzureFileReference> InternalGetAsync(IPrivateFileReference file, bool withMetadata = false)
         {
             var azureFile = file as Internal.AzureFileReference;
