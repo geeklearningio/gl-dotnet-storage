@@ -24,5 +24,7 @@
         Task SavePropertiesAsync();
 
         ValueTask<string> GetSharedAccessSignature(ISharedAccessPolicy policy);
+
+        Task FetchProperties();
     }
 }

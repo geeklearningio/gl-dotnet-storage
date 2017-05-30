@@ -231,14 +231,9 @@
             return result;
         }
 
-        private async ValueTask<Internal.AzureFileReference> InternalGetAsync(IPrivateFileReference file, bool withMetadata = false)
+        private ValueTask<Internal.AzureFileReference> InternalGetAsync(IPrivateFileReference file, bool withMetadata = false)
         {
-            if (file is Internal.AzureFileReference azureFile)
-            {
-                return azureFile;
-            }
-
-            return await this.InternalGetAsync(new Uri(file.Path, UriKind.Relative), withMetadata);
+            return this.InternalGetAsync(new Uri(file.Path, UriKind.Relative), withMetadata);
         }
 
         private async ValueTask<Internal.AzureFileReference> InternalGetAsync(Uri uri, bool withMetadata)
