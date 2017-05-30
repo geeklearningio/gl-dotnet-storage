@@ -21,8 +21,6 @@
 
         Task UpdateAsync(Stream stream);
 
-        Task<string> GetExpirableUriAsync();
-
         Task SavePropertiesAsync();
 
         Task<string> GetSharedAccessSignature(ISharedAccessPolicy policy);

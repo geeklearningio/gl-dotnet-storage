@@ -60,11 +60,6 @@
             return Task.FromResult(true);
         }
 
-        public Task<string> GetExpirableUriAsync()
-        {
-            throw new NotImplementedException();
-        }
-
         public Task<byte[]> ReadAllBytesAsync()
         {
             return Task.FromResult(File.ReadAllBytes(this.FileSystemPath));
@@ -108,6 +103,11 @@
                 this.store.AbsolutePath,
                 this,
                 (this.Properties as FileSystemFileProperties).ExtendedProperties);
+        }
+
+        public Task<string> GetSharedAccessSignature(ISharedAccessPolicy policy)
+        {
+            throw new NotSupportedException();
         }
     }
 }

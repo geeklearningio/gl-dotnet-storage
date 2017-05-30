@@ -30,6 +30,6 @@
 
         Task<IFileReference> SaveAsync(Stream data, IPrivateFileReference file, string contentType);
 
-        Task<string> GetSharedAccessSignature(ISharedAccessPolicy policy);
+        Task<string> GetSharedAccessSignatureAsync(ISharedAccessPolicy policy);
     }
 }

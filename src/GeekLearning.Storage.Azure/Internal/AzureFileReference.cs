@@ -61,11 +61,6 @@
             return this.CloudBlob.UploadFromStreamAsync(stream);
         }
 
-        public Task<string> GetExpirableUriAsync()
-        {
-            throw new NotImplementedException();
-        }
-
         public async Task ReadToStreamAsync(Stream targetStream)
         {
             await this.CloudBlob.DownloadRangeToStreamAsync(targetStream, null, null);
@@ -87,6 +82,18 @@
         public Task SavePropertiesAsync()
         {
             return this.propertiesLazy.Value.SaveAsync();
+        }
+
+        public Task<string> GetSharedAccessSignature(ISharedAccessPolicy policy)
+        {
+            var adHocPolicy = new SharedAccessBlobPolicy()
+            {
+                SharedAccessStartTime = policy.StartTime,
+                SharedAccessExpiryTime = policy.ExpiryTime,
+                Permissions = AzureStore.FromGenericToAzure(policy.Permissions),
+            };
+
+            return Task.FromResult(this.CloudBlob.GetSharedAccessSignature(adHocPolicy));
         }
     }
 }

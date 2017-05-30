@@ -23,15 +23,6 @@
             this.storeOptions = storeOptions;
             this.client = new Lazy<CloudBlobClient>(() => CloudStorageAccount.Parse(storeOptions.ConnectionString).CreateCloudBlobClient());
             this.container = new Lazy<CloudBlobContainer>(() => this.client.Value.GetContainerReference(storeOptions.FolderName));
-
-
-            var policy = new SharedAccessBlobPolicy()
-            {
-                
-            };
-
-            this.container.Value.GetSharedAccessSignature()
-
         }
 
         public string Name => this.storeOptions.Name;
@@ -189,6 +180,55 @@
             await reference.SavePropertiesAsync();
 
             return reference;
+        }
+
+        public Task<string> GetSharedAccessSignatureAsync(ISharedAccessPolicy policy)
+        {
+            var adHocPolicy = new SharedAccessBlobPolicy()
+            {
+                SharedAccessStartTime = policy.StartTime,
+                SharedAccessExpiryTime = policy.ExpiryTime,
+                Permissions = FromGenericToAzure(policy.Permissions),
+            };
+
+            return Task.FromResult(this.container.Value.GetSharedAccessSignature(adHocPolicy));
+        }
+
+        internal static SharedAccessBlobPermissions FromGenericToAzure(SharedAccessPermissions permissions)
+        {
+            var result = SharedAccessBlobPermissions.None;
+
+            if (permissions.HasFlag(SharedAccessPermissions.Add))
+            {
+                result |= SharedAccessBlobPermissions.Add;
+            }
+
+            if (permissions.HasFlag(SharedAccessPermissions.Create))
+            {
+                result |= SharedAccessBlobPermissions.Create;
+            }
+
+            if (permissions.HasFlag(SharedAccessPermissions.Delete))
+            {
+                result |= SharedAccessBlobPermissions.Delete;
+            }
+
+            if (permissions.HasFlag(SharedAccessPermissions.List))
+            {
+                result |= SharedAccessBlobPermissions.List;
+            }
+
+            if (permissions.HasFlag(SharedAccessPermissions.Read))
+            {
+                result |= SharedAccessBlobPermissions.Read;
+            }
+
+            if (permissions.HasFlag(SharedAccessPermissions.Write))
+            {
+                result |= SharedAccessBlobPermissions.Write;
+            }
+
+            return result;
         }
 
         private async Task<Internal.AzureFileReference> InternalGetAsync(IPrivateFileReference file, bool withMetadata = false)
