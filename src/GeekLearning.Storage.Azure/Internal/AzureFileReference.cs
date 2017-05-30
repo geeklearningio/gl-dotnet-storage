@@ -43,12 +43,12 @@
             return this.CloudBlob.DeleteAsync();
         }
 
-        public async Task<Stream> ReadAsync()
+        public async ValueTask<Stream> ReadAsync()
         {
             return await this.ReadInMemoryAsync();
         }
 
-        public async Task<MemoryStream> ReadInMemoryAsync()
+        public async ValueTask<MemoryStream> ReadInMemoryAsync()
         {
             var memoryStream = new MemoryStream();
             await this.CloudBlob.DownloadRangeToStreamAsync(memoryStream, null, null);
@@ -66,7 +66,7 @@
             await this.CloudBlob.DownloadRangeToStreamAsync(targetStream, null, null);
         }
 
-        public async Task<string> ReadAllTextAsync()
+        public async ValueTask<string> ReadAllTextAsync()
         {
             using (var reader = new StreamReader(await this.CloudBlob.OpenReadAsync(AccessCondition.GenerateEmptyCondition(), new BlobRequestOptions(), new OperationContext())))
             {
@@ -74,7 +74,7 @@
             }
         }
 
-        public async Task<byte[]> ReadAllBytesAsync()
+        public async ValueTask<byte[]> ReadAllBytesAsync()
         {
             return (await this.ReadInMemoryAsync()).ToArray();
         }
@@ -84,7 +84,7 @@
             return this.propertiesLazy.Value.SaveAsync();
         }
 
-        public Task<string> GetSharedAccessSignature(ISharedAccessPolicy policy)
+        public ValueTask<string> GetSharedAccessSignature(ISharedAccessPolicy policy)
         {
             var adHocPolicy = new SharedAccessBlobPolicy()
             {
@@ -93,7 +93,7 @@
                 Permissions = AzureStore.FromGenericToAzure(policy.Permissions),
             };
 
-            return Task.FromResult(this.CloudBlob.GetSharedAccessSignature(adHocPolicy));
+            return new ValueTask<string>(this.CloudBlob.GetSharedAccessSignature(adHocPolicy));
         }
     }
 }

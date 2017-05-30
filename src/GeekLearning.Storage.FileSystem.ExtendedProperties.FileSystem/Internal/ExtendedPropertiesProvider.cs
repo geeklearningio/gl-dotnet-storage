@@ -16,16 +16,16 @@
             this.options = options.Value;
         }
 
-        public Task<FileExtendedProperties> GetExtendedPropertiesAsync(string storeAbsolutePath, IPrivateFileReference file)
+        public ValueTask<FileExtendedProperties> GetExtendedPropertiesAsync(string storeAbsolutePath, IPrivateFileReference file)
         {
             var extendedPropertiesPath = this.GetExtendedPropertiesPath(storeAbsolutePath, file);
             if (!File.Exists(extendedPropertiesPath))
             {
-                return Task.FromResult(new FileExtendedProperties());
+                return new ValueTask<FileExtendedProperties>(new FileExtendedProperties());
             }
 
             var content = File.ReadAllText(extendedPropertiesPath);
-            return Task.FromResult(JsonConvert.DeserializeObject<FileExtendedProperties>(content));
+            return new ValueTask<FileExtendedProperties>(JsonConvert.DeserializeObject<FileExtendedProperties>(content));
         }
 
         public Task SaveExtendedPropertiesAsync(string storeAbsolutePath, IPrivateFileReference file, FileExtendedProperties extendedProperties)

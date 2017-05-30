@@ -16,13 +16,13 @@
         }
 
         [HttpGet]
-        public async Task<IEnumerable<string>> Get()
+        public async ValueTask<IEnumerable<string>> Get()
         {
             return new string[] { await templates.Store.ReadAllTextAsync("json.json"), "value2" };
         }
 
         [HttpGet("files")]
-        public async Task<IEnumerable<string>> Get(int id)
+        public async ValueTask<IEnumerable<string>> Get(int id)
         {
             var files = await templates.Store.ListAsync("");
             return files.Select(x => x.PublicUrl);

@@ -47,7 +47,7 @@
             return this.container.Value.CreateIfNotExistsAsync(accessType, null, null);
         }
 
-        public async Task<IFileReference[]> ListAsync(string path, bool recursive, bool withMetadata)
+        public async ValueTask<IFileReference[]> ListAsync(string path, bool recursive, bool withMetadata)
         {
             if (string.IsNullOrWhiteSpace(path))
             {
@@ -75,7 +75,7 @@
             return results.OfType<ICloudBlob>().Select(blob => new Internal.AzureFileReference(blob, withMetadata: withMetadata)).ToArray();
         }
 
-        public async Task<IFileReference[]> ListAsync(string path, string searchPattern, bool recursive, bool withMetadata)
+        public async ValueTask<IFileReference[]> ListAsync(string path, string searchPattern, bool recursive, bool withMetadata)
         {
             if (string.IsNullOrWhiteSpace(path))
             {
@@ -121,12 +121,12 @@
             return filteredResults.Files.Select(x => pathMap[path + x.Path]).ToArray();
         }
 
-        public async Task<IFileReference> GetAsync(IPrivateFileReference file, bool withMetadata)
+        public async ValueTask<IFileReference> GetAsync(IPrivateFileReference file, bool withMetadata)
         {
             return await this.InternalGetAsync(file, withMetadata);
         }
 
-        public async Task<IFileReference> GetAsync(Uri uri, bool withMetadata)
+        public async ValueTask<IFileReference> GetAsync(Uri uri, bool withMetadata)
         {
             return await this.InternalGetAsync(uri, withMetadata);
         }
@@ -137,25 +137,25 @@
             await fileReference.DeleteAsync();
         }
 
-        public async Task<Stream> ReadAsync(IPrivateFileReference file)
+        public async ValueTask<Stream> ReadAsync(IPrivateFileReference file)
         {
             var fileReference = await this.InternalGetAsync(file);
             return await fileReference.ReadInMemoryAsync();
         }
 
-        public async Task<byte[]> ReadAllBytesAsync(IPrivateFileReference file)
+        public async ValueTask<byte[]> ReadAllBytesAsync(IPrivateFileReference file)
         {
             var fileReference = await this.InternalGetAsync(file);
             return await fileReference.ReadAllBytesAsync();
         }
 
-        public async Task<string> ReadAllTextAsync(IPrivateFileReference file)
+        public async ValueTask<string> ReadAllTextAsync(IPrivateFileReference file)
         {
             var fileReference = await this.InternalGetAsync(file);
             return await fileReference.ReadAllTextAsync();
         }
 
-        public async Task<IFileReference> SaveAsync(byte[] data, IPrivateFileReference file, string contentType)
+        public async ValueTask<IFileReference> SaveAsync(byte[] data, IPrivateFileReference file, string contentType)
         {
             using (var stream = new SyncMemoryStream(data, 0, data.Length))
             {
@@ -163,7 +163,7 @@
             }
         }
 
-        public async Task<IFileReference> SaveAsync(Stream data, IPrivateFileReference file, string contentType)
+        public async ValueTask<IFileReference> SaveAsync(Stream data, IPrivateFileReference file, string contentType)
         {
             var blockBlob = this.container.Value.GetBlockBlobReference(file.Path);
 
@@ -182,7 +182,7 @@
             return reference;
         }
 
-        public Task<string> GetSharedAccessSignatureAsync(ISharedAccessPolicy policy)
+        public ValueTask<string> GetSharedAccessSignatureAsync(ISharedAccessPolicy policy)
         {
             var adHocPolicy = new SharedAccessBlobPolicy()
             {
@@ -191,7 +191,7 @@
                 Permissions = FromGenericToAzure(policy.Permissions),
             };
 
-            return Task.FromResult(this.container.Value.GetSharedAccessSignature(adHocPolicy));
+            return new ValueTask<string>(this.container.Value.GetSharedAccessSignature(adHocPolicy));
         }
 
         internal static SharedAccessBlobPermissions FromGenericToAzure(SharedAccessPermissions permissions)
@@ -231,10 +231,9 @@
             return result;
         }
 
-        private async Task<Internal.AzureFileReference> InternalGetAsync(IPrivateFileReference file, bool withMetadata = false)
+        private async ValueTask<Internal.AzureFileReference> InternalGetAsync(IPrivateFileReference file, bool withMetadata = false)
         {
-            var azureFile = file as Internal.AzureFileReference;
-            if (azureFile != null)
+            if (file is Internal.AzureFileReference azureFile)
             {
                 return azureFile;
             }
@@ -242,7 +241,7 @@
             return await this.InternalGetAsync(new Uri(file.Path, UriKind.Relative), withMetadata);
         }
 
-        private async Task<Internal.AzureFileReference> InternalGetAsync(Uri uri, bool withMetadata)
+        private async ValueTask<Internal.AzureFileReference> InternalGetAsync(Uri uri, bool withMetadata)
         {
             try
             {
