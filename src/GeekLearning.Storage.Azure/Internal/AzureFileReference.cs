@@ -9,11 +9,13 @@
     public class AzureFileReference : IFileReference
     {
         private Lazy<AzureFileProperties> propertiesLazy;
+        private bool withMetadata;
 
         public AzureFileReference(string path, ICloudBlob cloudBlob, bool withMetadata)
         {
             this.Path = path;
             this.CloudBlob = cloudBlob;
+            this.withMetadata = withMetadata;
             this.propertiesLazy = new Lazy<AzureFileProperties>(() =>
             {
                 if (withMetadata && cloudBlob.Metadata != null && cloudBlob.Properties != null)
@@ -94,6 +96,19 @@
             };
 
             return new ValueTask<string>(this.CloudBlob.GetSharedAccessSignature(adHocPolicy));
+        }
+
+        public async Task FetchProperties()
+        {
+            if (this.withMetadata)
+            {
+                return;
+            }
+
+            await this.CloudBlob.FetchAttributesAsync();
+
+            this.propertiesLazy = new Lazy<AzureFileProperties>(() => new AzureFileProperties(this.CloudBlob));
+            this.withMetadata = true;
         }
     }
 }

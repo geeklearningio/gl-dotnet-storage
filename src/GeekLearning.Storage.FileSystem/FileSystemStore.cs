@@ -153,14 +153,9 @@
             throw new NotSupportedException();
         }
 
-        private async ValueTask<Internal.FileSystemFileReference> InternalGetAsync(IPrivateFileReference file, bool withMetadata = false, bool checkIfExists = true)
+        private ValueTask<Internal.FileSystemFileReference> InternalGetAsync(IPrivateFileReference file, bool withMetadata = false, bool checkIfExists = true)
         {
-            if (file is Internal.FileSystemFileReference fileSystemFile)
-            {
-                return fileSystemFile;
-            }
-
-            return await this.InternalGetAsync(file.Path, withMetadata, checkIfExists);
+            return this.InternalGetAsync(file.Path, withMetadata, checkIfExists);
         }
 
         private async ValueTask<Internal.FileSystemFileReference> InternalGetAsync(string path, bool withMetadata, bool checkIfExists = true)

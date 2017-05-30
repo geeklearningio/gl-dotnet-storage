@@ -7,9 +7,10 @@
     public class FileSystemFileReference : IFileReference
     {
         private readonly FileSystemStore store;
-        private readonly Lazy<IFileProperties> propertiesLazy;
         private readonly Lazy<string> publicUrlLazy;
         private readonly IExtendedPropertiesProvider extendedPropertiesProvider;
+        private bool withMetadata;
+        private Lazy<IFileProperties> propertiesLazy;
 
         public FileSystemFileReference(
             string filePath,
@@ -24,6 +25,7 @@
             this.Path = path.Replace('\\', '/');
             this.store = store;
             this.extendedPropertiesProvider = extendedPropertiesProvider;
+            this.withMetadata = withMetadata;
 
             this.propertiesLazy = new Lazy<IFileProperties>(() =>
             {
@@ -107,6 +109,26 @@
         public ValueTask<string> GetSharedAccessSignature(ISharedAccessPolicy policy)
         {
             throw new NotSupportedException();
+        }
+
+        public async Task FetchProperties()
+        {
+            if (this.withMetadata)
+            {
+                return;
+            }
+
+            if (this.extendedPropertiesProvider == null)
+            {
+                throw new InvalidOperationException("There is no FileSystem extended properties provider.");
+            }
+
+            var extendedProperties = await this.extendedPropertiesProvider.GetExtendedPropertiesAsync(
+                this.store.AbsolutePath,
+                this);
+
+            this.propertiesLazy = new Lazy<IFileProperties>(() => new FileSystemFileProperties(this.FileSystemPath, extendedProperties));
+            this.withMetadata = true;
         }
     }
 }
