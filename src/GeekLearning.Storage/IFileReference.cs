@@ -11,11 +11,11 @@
 
         Task ReadToStreamAsync(Stream targetStream);
 
-        Task<Stream> ReadAsync();
+        ValueTask<Stream> ReadAsync();
 
-        Task<string> ReadAllTextAsync();
+        ValueTask<string> ReadAllTextAsync();
 
-        Task<byte[]> ReadAllBytesAsync();
+        ValueTask<byte[]> ReadAllBytesAsync();
 
         Task DeleteAsync();
 
@@ -23,6 +23,6 @@
 
         Task SavePropertiesAsync();
 
-        Task<string> GetSharedAccessSignature(ISharedAccessPolicy policy);
+        ValueTask<string> GetSharedAccessSignature(ISharedAccessPolicy policy);
     }
 }

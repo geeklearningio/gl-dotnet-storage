@@ -37,7 +37,7 @@
             return Task.FromResult(0);
         }
 
-        public async Task<IFileReference[]> ListAsync(string path, bool recursive, bool withMetadata)
+        public async ValueTask<IFileReference[]> ListAsync(string path, bool recursive, bool withMetadata)
         {
             var directoryPath = (string.IsNullOrEmpty(path) || path == "/" || path == "\\") ? this.AbsolutePath : Path.Combine(this.AbsolutePath, path);
 
@@ -57,7 +57,7 @@
             return result.ToArray();
         }
 
-        public async Task<IFileReference[]> ListAsync(string path, string searchPattern, bool recursive, bool withMetadata)
+        public async ValueTask<IFileReference[]> ListAsync(string path, string searchPattern, bool recursive, bool withMetadata)
         {
             var directoryPath = (string.IsNullOrEmpty(path) || path == "/" || path == "\\") ? this.AbsolutePath : Path.Combine(this.AbsolutePath, path);
 
@@ -81,12 +81,12 @@
             return result.ToArray();
         }
 
-        public async Task<IFileReference> GetAsync(IPrivateFileReference file, bool withMetadata)
+        public async ValueTask<IFileReference> GetAsync(IPrivateFileReference file, bool withMetadata)
         {
             return await this.InternalGetAsync(file, withMetadata);
         }
 
-        public async Task<IFileReference> GetAsync(Uri uri, bool withMetadata)
+        public async ValueTask<IFileReference> GetAsync(Uri uri, bool withMetadata)
         {
             if (uri.IsAbsoluteUri)
             {
@@ -102,25 +102,25 @@
             await fileReference.DeleteAsync();
         }
 
-        public async Task<Stream> ReadAsync(IPrivateFileReference file)
+        public async ValueTask<Stream> ReadAsync(IPrivateFileReference file)
         {
             var fileReference = await this.InternalGetAsync(file);
             return await fileReference.ReadAsync();
         }
 
-        public async Task<byte[]> ReadAllBytesAsync(IPrivateFileReference file)
+        public async ValueTask<byte[]> ReadAllBytesAsync(IPrivateFileReference file)
         {
             var fileReference = await this.InternalGetAsync(file);
             return await fileReference.ReadAllBytesAsync();
         }
 
-        public async Task<string> ReadAllTextAsync(IPrivateFileReference file)
+        public async ValueTask<string> ReadAllTextAsync(IPrivateFileReference file)
         {
             var fileReference = await this.InternalGetAsync(file);
             return await fileReference.ReadAllTextAsync();
         }
 
-        public async Task<IFileReference> SaveAsync(byte[] data, IPrivateFileReference file, string contentType)
+        public async ValueTask<IFileReference> SaveAsync(byte[] data, IPrivateFileReference file, string contentType)
         {
             using (var stream = new MemoryStream(data, 0, data.Length))
             {
@@ -128,7 +128,7 @@
             }
         }
 
-        public async Task<IFileReference> SaveAsync(Stream data, IPrivateFileReference file, string contentType)
+        public async ValueTask<IFileReference> SaveAsync(Stream data, IPrivateFileReference file, string contentType)
         {
             var fileReference = await this.InternalGetAsync(file, withMetadata: true, checkIfExists: false);
             this.EnsurePathExists(fileReference.FileSystemPath);
@@ -148,15 +148,14 @@
             return fileReference;
         }
 
-        public Task<string> GetSharedAccessSignatureAsync(ISharedAccessPolicy policy)
+        public ValueTask<string> GetSharedAccessSignatureAsync(ISharedAccessPolicy policy)
         {
             throw new NotSupportedException();
         }
 
-        private async Task<Internal.FileSystemFileReference> InternalGetAsync(IPrivateFileReference file, bool withMetadata = false, bool checkIfExists = true)
+        private async ValueTask<Internal.FileSystemFileReference> InternalGetAsync(IPrivateFileReference file, bool withMetadata = false, bool checkIfExists = true)
         {
-            var fileSystemFile = file as Internal.FileSystemFileReference;
-            if (fileSystemFile != null)
+            if (file is Internal.FileSystemFileReference fileSystemFile)
             {
                 return fileSystemFile;
             }
@@ -164,7 +163,7 @@
             return await this.InternalGetAsync(file.Path, withMetadata, checkIfExists);
         }
 
-        private async Task<Internal.FileSystemFileReference> InternalGetAsync(string path, bool withMetadata, bool checkIfExists = true)
+        private async ValueTask<Internal.FileSystemFileReference> InternalGetAsync(string path, bool withMetadata, bool checkIfExists = true)
         {
             var fullPath = Path.Combine(this.AbsolutePath, path);
             if (checkIfExists && !File.Exists(fullPath))

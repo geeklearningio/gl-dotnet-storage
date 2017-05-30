@@ -60,20 +60,19 @@
             return Task.FromResult(true);
         }
 
-        public Task<byte[]> ReadAllBytesAsync()
+        public ValueTask<byte[]> ReadAllBytesAsync()
         {
-            return Task.FromResult(File.ReadAllBytes(this.FileSystemPath));
+            return new ValueTask<byte[]>(File.ReadAllBytes(this.FileSystemPath));
         }
 
-        public Task<string> ReadAllTextAsync()
+        public ValueTask<string> ReadAllTextAsync()
         {
-            return Task.FromResult(File.ReadAllText(this.FileSystemPath));
+            return new ValueTask<string>(File.ReadAllText(this.FileSystemPath));
         }
 
-        public Task<Stream> ReadAsync()
+        public ValueTask<Stream> ReadAsync()
         {
-            Stream stream = File.OpenRead(this.FileSystemPath);
-            return Task.FromResult(stream);
+            return new ValueTask<Stream>(File.OpenRead(this.FileSystemPath));
         }
 
         public async Task ReadToStreamAsync(Stream targetStream)
@@ -105,7 +104,7 @@
                 (this.Properties as FileSystemFileProperties).ExtendedProperties);
         }
 
-        public Task<string> GetSharedAccessSignature(ISharedAccessPolicy policy)
+        public ValueTask<string> GetSharedAccessSignature(ISharedAccessPolicy policy)
         {
             throw new NotSupportedException();
         }
