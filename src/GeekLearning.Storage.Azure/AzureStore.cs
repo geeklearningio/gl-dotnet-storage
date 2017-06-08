@@ -8,6 +8,7 @@
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
+    using System.Security.Cryptography;
     using System.Threading.Tasks;
 
     public class AzureStore : IStore
@@ -155,29 +156,53 @@
             return await fileReference.ReadAllTextAsync();
         }
 
-        public async ValueTask<IFileReference> SaveAsync(byte[] data, IPrivateFileReference file, string contentType)
+        public async ValueTask<IFileReference> SaveAsync(byte[] data, IPrivateFileReference file, string contentType, OverwritePolicy overwritePolicy = OverwritePolicy.Always)
         {
             using (var stream = new SyncMemoryStream(data, 0, data.Length))
             {
-                return await this.SaveAsync(stream, file, contentType);
+                return await this.SaveAsync(stream, file, contentType, overwritePolicy);
             }
         }
 
-        public async ValueTask<IFileReference> SaveAsync(Stream data, IPrivateFileReference file, string contentType)
+        public async ValueTask<IFileReference> SaveAsync(Stream data, IPrivateFileReference file, string contentType, OverwritePolicy overwritePolicy = OverwritePolicy.Always)
         {
+            var uploadBlob = true;
             var blockBlob = this.container.Value.GetBlockBlobReference(file.Path);
+            var blobExists = await blockBlob.ExistsAsync();
 
-            if (await blockBlob.ExistsAsync())
+            if (blobExists)
             {
+                if (overwritePolicy == OverwritePolicy.Never)
+                {
+                    throw new Exceptions.FileAlreadyExistsException(this.Name, file.Path);
+                }
+
                 await blockBlob.FetchAttributesAsync();
+
+                if (overwritePolicy == OverwritePolicy.IfContentModified)
+                {
+                    using (var md5 = MD5.Create())
+                    {
+                        data.Seek(0, SeekOrigin.Begin);
+                        var contentMD5 = Convert.ToBase64String(md5.ComputeHash(data));
+                        data.Seek(0, SeekOrigin.Begin);
+                        uploadBlob = (contentMD5 == blockBlob.Properties.ContentMD5);
+                    }
+                }
             }
 
-            await blockBlob.UploadFromStreamAsync(data);
+            if (uploadBlob)
+            {
+                await blockBlob.UploadFromStreamAsync(data);
+            }
 
             var reference = new Internal.AzureFileReference(blockBlob, withMetadata: true);
 
-            reference.Properties.ContentType = contentType;
-            await reference.SavePropertiesAsync();
+            if (reference.Properties.ContentType != contentType)
+            {
+                reference.Properties.ContentType = contentType;
+                await reference.SavePropertiesAsync();
+            }
 
             return reference;
         }

@@ -49,6 +49,8 @@
             set { this.cloudBlob.Properties.CacheControl = value; }
         }
 
+        public string ContentMD5 => this.cloudBlob.Properties.ContentMD5;
+
         public IDictionary<string, string> Metadata => this.decodedMetadata;
 
         internal async Task SaveAsync()

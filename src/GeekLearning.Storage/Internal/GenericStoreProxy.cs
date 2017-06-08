@@ -41,9 +41,9 @@
 
         public ValueTask<Stream> ReadAsync(IPrivateFileReference file) => this.innerStore.ReadAsync(file);
 
-        public ValueTask<IFileReference> SaveAsync(Stream data, IPrivateFileReference file, string contentType) => this.innerStore.SaveAsync(data, file, contentType);
+        public ValueTask<IFileReference> SaveAsync(Stream data, IPrivateFileReference file, string contentType, OverwritePolicy overwritePolicy = OverwritePolicy.Always) => this.innerStore.SaveAsync(data, file, contentType, overwritePolicy);
 
-        public ValueTask<IFileReference> SaveAsync(byte[] data, IPrivateFileReference file, string contentType) => this.innerStore.SaveAsync(data, file, contentType);
+        public ValueTask<IFileReference> SaveAsync(byte[] data, IPrivateFileReference file, string contentType, OverwritePolicy overwritePolicy = OverwritePolicy.Always) => this.innerStore.SaveAsync(data, file, contentType, overwritePolicy);
 
         public ValueTask<string> GetSharedAccessSignatureAsync(ISharedAccessPolicy policy) => this.innerStore.GetSharedAccessSignatureAsync(policy);
     }
