@@ -120,28 +120,45 @@
             return await fileReference.ReadAllTextAsync();
         }
 
-        public async ValueTask<IFileReference> SaveAsync(byte[] data, IPrivateFileReference file, string contentType)
+        public async ValueTask<IFileReference> SaveAsync(byte[] data, IPrivateFileReference file, string contentType, OverwritePolicy overwritePolicy = OverwritePolicy.Always)
         {
             using (var stream = new MemoryStream(data, 0, data.Length))
             {
-                return await this.SaveAsync(stream, file, contentType);
+                return await this.SaveAsync(stream, file, contentType, overwritePolicy);
             }
         }
 
-        public async ValueTask<IFileReference> SaveAsync(Stream data, IPrivateFileReference file, string contentType)
+        public async ValueTask<IFileReference> SaveAsync(Stream data, IPrivateFileReference file, string contentType, OverwritePolicy overwritePolicy = OverwritePolicy.Always)
         {
             var fileReference = await this.InternalGetAsync(file, withMetadata: true, checkIfExists: false);
-            this.EnsurePathExists(fileReference.FileSystemPath);
+            var fileExists = File.Exists(fileReference.FileSystemPath);
 
-            using (var fileStream = File.Open(fileReference.FileSystemPath, FileMode.Create, FileAccess.Write))
+            if (fileExists)
             {
-                await data.CopyToAsync(fileStream);
+                if (overwritePolicy == OverwritePolicy.Never)
+                {
+                    throw new Exceptions.FileAlreadyExistsException(this.Name, file.Path);
+                }
             }
 
             var properties = fileReference.Properties as Internal.FileSystemFileProperties;
+            var hashes = ComputeHashes(data);
+
+            if (!fileExists
+                || overwritePolicy == OverwritePolicy.Always
+                || (overwritePolicy == OverwritePolicy.IfContentModified && properties.ContentMD5 != hashes.ContentMD5))
+            {
+                this.EnsurePathExists(fileReference.FileSystemPath);
+
+                using (var fileStream = File.Open(fileReference.FileSystemPath, FileMode.Create, FileAccess.Write))
+                {
+                    await data.CopyToAsync(fileStream);
+                }
+            }
 
             properties.ContentType = contentType;
-            properties.ExtendedProperties.ETag = GenerateEtag(fileReference.FileSystemPath);
+            properties.ExtendedProperties.ETag = hashes.ETag;
+            properties.ExtendedProperties.ContentMD5 = hashes.ContentMD5;
 
             await fileReference.SavePropertiesAsync();
 
@@ -198,18 +215,23 @@
             }
         }
 
-        private static string GenerateEtag(string fileSystemPath)
+        private static (string ETag, string ContentMD5) ComputeHashes(Stream stream)
         {
-            var etag = string.Empty;
-            using (var stream = File.Open(fileSystemPath, FileMode.Open, FileAccess.Read))
+            var eTag = string.Empty;
+            var contentMD5 = string.Empty;
+
+            stream.Seek(0, SeekOrigin.Begin);
             using (var md5 = MD5.Create())
             {
+                stream.Seek(0, SeekOrigin.Begin);
                 var hash = md5.ComputeHash(stream);
+                stream.Seek(0, SeekOrigin.Begin);
+                contentMD5 = Convert.ToBase64String(hash);
                 string hex = BitConverter.ToString(hash);
-                etag = hex.Replace("-", "");
+                eTag = $"\"{hex.Replace("-", "")}\"";
             }
 
-            return $"\"{etag}\"";
+            return (eTag, contentMD5);
         }
     }
 }

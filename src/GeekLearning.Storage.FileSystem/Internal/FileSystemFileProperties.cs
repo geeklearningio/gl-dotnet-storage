@@ -33,6 +33,8 @@
             set { this.extendedProperties.CacheControl = value; }
         }
 
+        public string ContentMD5 => this.extendedProperties.ContentMD5;
+
         public IDictionary<string, string> Metadata => this.extendedProperties.Metadata;
 
         internal FileExtendedProperties ExtendedProperties => this.extendedProperties;

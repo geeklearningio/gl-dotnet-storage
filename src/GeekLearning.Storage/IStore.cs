@@ -26,9 +26,9 @@
 
         ValueTask<string> ReadAllTextAsync(IPrivateFileReference file);
 
-        ValueTask<IFileReference> SaveAsync(byte[] data, IPrivateFileReference file, string contentType);
+        ValueTask<IFileReference> SaveAsync(byte[] data, IPrivateFileReference file, string contentType, OverwritePolicy overwritePolicy = OverwritePolicy.Always);
 
-        ValueTask<IFileReference> SaveAsync(Stream data, IPrivateFileReference file, string contentType);
+        ValueTask<IFileReference> SaveAsync(Stream data, IPrivateFileReference file, string contentType, OverwritePolicy overwritePolicy = OverwritePolicy.Always);
 
         ValueTask<string> GetSharedAccessSignatureAsync(ISharedAccessPolicy policy);
     }

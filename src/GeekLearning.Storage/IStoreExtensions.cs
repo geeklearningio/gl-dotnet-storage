@@ -26,10 +26,10 @@
         public static ValueTask<string> ReadAllTextAsync(this IStore store, string path)
             => store.ReadAllTextAsync(new Internal.PrivateFileReference(path));
 
-        public static ValueTask<IFileReference> SaveAsync(this IStore store, byte[] data, string path, string contentType)
-            => store.SaveAsync(data, new Internal.PrivateFileReference(path), contentType);
+        public static ValueTask<IFileReference> SaveAsync(this IStore store, byte[] data, string path, string contentType, OverwritePolicy overwritePolicy = OverwritePolicy.Always)
+            => store.SaveAsync(data, new Internal.PrivateFileReference(path), contentType, overwritePolicy);
 
-        public static ValueTask<IFileReference> SaveAsync(this IStore store, Stream data, string path, string contentType)
-            => store.SaveAsync(data, new Internal.PrivateFileReference(path), contentType);
+        public static ValueTask<IFileReference> SaveAsync(this IStore store, Stream data, string path, string contentType, OverwritePolicy overwritePolicy = OverwritePolicy.Always)
+            => store.SaveAsync(data, new Internal.PrivateFileReference(path), contentType, overwritePolicy);
     }
 }
