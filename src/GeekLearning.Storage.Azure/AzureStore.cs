@@ -186,7 +186,7 @@
                         data.Seek(0, SeekOrigin.Begin);
                         var contentMD5 = Convert.ToBase64String(md5.ComputeHash(data));
                         data.Seek(0, SeekOrigin.Begin);
-                        uploadBlob = (contentMD5 == blockBlob.Properties.ContentMD5);
+                        uploadBlob = (contentMD5 != blockBlob.Properties.ContentMD5);
                     }
                 }
             }
