@@ -7,7 +7,7 @@ This library abstracts physical data storage in a way which allows you to transp
 by configuration.
 
 ## Features
-
+ 
 * List files, with globbing support
 * Read, Write, Delete files
 * Public file url
