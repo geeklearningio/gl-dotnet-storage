@@ -2,7 +2,7 @@
 [![Build Status](https://geeklearning.visualstudio.com/_apis/public/build/definitions/f841b266-7595-4d01-9ee1-4864cf65aa73/27/badge)](#)
 
 # Geek Learning Cloud Storage Abstraction
-
+ 
 This library abstracts physical data storage in a way which allows you to transparently switch the underlying provider
 by configuration.
 
