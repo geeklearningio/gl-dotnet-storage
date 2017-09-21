@@ -11,7 +11,7 @@ by configuration.
 * List files, with globbing support
 * Read, Write, Delete files
 * Public file url
-
+ 
 ## Providers
 
 The library currently supports:
