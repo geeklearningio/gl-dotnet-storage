@@ -17,14 +17,14 @@
         }
 
         [HttpGet]
-        public async Task<IEnumerable<string>> Get()
+        public async ValueTask<IEnumerable<string>> Get()
         {
             var summaries = await this.sharedAssets.ListAsync("summaries", "*.txt", recursive: true, withMetadata: false);
             return summaries.Select(x => x.Path);
         }
 
         [HttpGet]
-        public async Task<string> Get(string path)
+        public async ValueTask<string> Get(string path)
         {
             var summary = await this.sharedAssets.GetAsync(path);
             return await summary.ReadAllTextAsync();

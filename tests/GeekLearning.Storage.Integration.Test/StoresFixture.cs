@@ -1,7 +1,9 @@
 ﻿namespace GeekLearning.Storage.Integration.Test
 {
+    using GeekLearning.Storage.Configuration;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Extensions.Options;
     using Microsoft.Extensions.PlatformAbstractions;
     using Microsoft.WindowsAzure.Storage;
     using Microsoft.WindowsAzure.Storage.Blob;
@@ -10,12 +12,11 @@
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.IO;
+    using GeekLearning.Storage.Azure.Configuration;
+    using GeekLearning.Storage.FileSystem.Configuration;
 
     public class StoresFixture : IDisposable
     {
-        private CloudStorageAccount cloudStorageAccount;
-        private CloudBlobContainer container;
-
         public StoresFixture()
         {
             this.BasePath = PlatformServices.Default.Application.ApplicationBasePath;
@@ -27,8 +28,10 @@
                 .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
                 .AddJsonFile($"appsettings.development.json", optional: true)
                 .AddInMemoryCollection(new KeyValuePair<string, string>[] {
-                    new KeyValuePair<string, string>("Storage:Stores:azure:Parameters:Container", containerId),
-                    new KeyValuePair<string, string>("TestStore:Parameters:Container", containerId)
+                    new KeyValuePair<string, string>("Storage:Stores:Store3:FolderName", $"Store3-{containerId}"),
+                    new KeyValuePair<string, string>("Storage:Stores:Store4:FolderName", $"Store4-{containerId}"),
+                    new KeyValuePair<string, string>("Storage:Stores:Store5:FolderName", $"Store5-{containerId}"),
+                    new KeyValuePair<string, string>("Storage:Stores:Store6:FolderName", $"Store6-{containerId}"),
                 });
 
             this.Configuration = builder.Build();
@@ -37,64 +40,20 @@
 
             services.AddOptions();
 
-            services.AddStorage()
+            services.AddStorage(Configuration)
                 .AddAzureStorage()
-                .AddFileSystemStorage(BasePath)
-                .AddFileSystemExtendedProperties(o => { });
+                .AddFileSystemStorage(this.FileSystemRootPath)
+                .AddFileSystemExtendedProperties();
 
             services.Configure<StorageOptions>(Configuration.GetSection("Storage"));
             services.Configure<TestStore>(Configuration.GetSection("TestStore"));
 
             this.Services = services.BuildServiceProvider();
-
+            this.StorageOptions = this.Services.GetService<IOptions<StorageOptions>>().Value;
+            this.AzureParsedOptions = this.Services.GetService<IOptions<AzureParsedOptions>>().Value;
+            this.FileSystemParsedOptions = this.Services.GetService<IOptions<FileSystemParsedOptions>>().Value;
+            this.TestStoreOptions = this.Services.GetService<IOptions<TestStore>>().Value.ParseStoreOptions<FileSystemParsedOptions, FileSystemProviderInstanceOptions, FileSystemStoreOptions, FileSystemScopedStoreOptions>(this.FileSystemParsedOptions);
             ResetStores();
-        }
-
-        private void ResetStores()
-        {
-            ResetAzureStore();
-            ResetFileSystemStore();
-        }
-
-        private void ResetFileSystemStore()
-        {
-            var directoryName = Configuration["Storage:Stores:filesystem:Parameters:Path"];
-            var process = Process.Start(new ProcessStartInfo("robocopy.exe")
-            {
-                Arguments = $"\"{Path.Combine(BasePath, "SampleDirectory")}\" \"{Path.Combine(BasePath, directoryName)}\" /MIR"
-            });
-
-            if (!process.WaitForExit(30000))
-            {
-                throw new TimeoutException("File system store was not reset properly");
-            }
-        }
-
-        private void ResetAzureStore()
-        {
-            var azCopy = System.IO.Path.Combine(
-                Environment.ExpandEnvironmentVariables(Configuration["AzCopyPath"]),
-                "AzCopy.exe");
-
-            cloudStorageAccount = CloudStorageAccount.Parse(Configuration["Storage:Stores:azure:Parameters:ConnectionString"]);
-            var key = cloudStorageAccount.Credentials.ExportBase64EncodedKey();
-            var containerName = Configuration["Storage:Stores:azure:Parameters:Container"];
-            var dest = cloudStorageAccount.BlobStorageUri.PrimaryUri.ToString() + containerName;
-
-            var client = cloudStorageAccount.CreateCloudBlobClient();
-
-            container = client.GetContainerReference(containerName);
-            container.CreateAsync().Wait();
-
-            var process = Process.Start(new ProcessStartInfo(azCopy)
-            {
-                Arguments = $"/Source:\"{System.IO.Path.Combine(BasePath, "SampleDirectory")}\" /Dest:\"{dest}\" /DestKey:{key} /S"
-            });
-
-            if (!process.WaitForExit(30000))
-            {
-                throw new TimeoutException("Azure store was not reset properly");
-            }
         }
 
         public IConfigurationRoot Configuration { get; }
@@ -103,23 +62,111 @@
 
         public string BasePath { get; }
 
+        public string FileSystemRootPath => Path.Combine(this.BasePath, "FileVault");
+
+        public string FileSystemSecondaryRootPath => Path.Combine(this.BasePath, "FileVault2");
+
+        public StorageOptions StorageOptions { get; }
+
+        public AzureParsedOptions AzureParsedOptions { get; }
+
+        public FileSystemParsedOptions FileSystemParsedOptions { get; }
+
+        public FileSystemStoreOptions TestStoreOptions { get; }
+
         public void Dispose()
         {
-            container.DeleteIfExistsAsync().Wait();
+            this.DeleteRootResources();
+        }
 
-            var fileSystemPath = Configuration["Storage:Stores:filesystem:Parameters:Path"];
-            var folderNameFormat = Configuration["Storage:ExtendedPropertiesFolderNameFormat"];
-
-            var directoryName = Path.Combine(BasePath, fileSystemPath);
-            if (Directory.Exists(directoryName))
+        private void DeleteRootResources()
+        {
+            foreach (var parsedStoreKvp in this.AzureParsedOptions.ParsedStores)
             {
-                Directory.Delete(directoryName, true);
+                var cloudStorageAccount = CloudStorageAccount.Parse(parsedStoreKvp.Value.ConnectionString);
+                var client = cloudStorageAccount.CreateCloudBlobClient();
+                var container = client.GetContainerReference(parsedStoreKvp.Value.FolderName);
+
+                container.DeleteIfExistsAsync().Wait();
             }
 
-            directoryName = Path.Combine(BasePath, string.Format(folderNameFormat, fileSystemPath));
-            if (Directory.Exists(directoryName))
+            if (Directory.Exists(this.FileSystemRootPath))
             {
-                Directory.Delete(directoryName, true);
+                Directory.Delete(this.FileSystemRootPath, true);
+            }
+
+            if (Directory.Exists(this.FileSystemSecondaryRootPath))
+            {
+                Directory.Delete(this.FileSystemSecondaryRootPath, true);
+            }
+        }
+
+        private void ResetStores()
+        {
+            this.DeleteRootResources();
+            this.ResetAzureStores();
+            this.ResetFileSystemStores();
+        }
+
+        private void ResetFileSystemStores()
+        {
+            if (!Directory.Exists(this.FileSystemRootPath))
+            {
+                Directory.CreateDirectory(this.FileSystemRootPath);
+            }
+
+            foreach (var parsedStoreKvp in this.FileSystemParsedOptions.ParsedStores)
+            {
+                ResetFileSystemStore(parsedStoreKvp.Key, parsedStoreKvp.Value.AbsolutePath);
+            }
+
+            ResetFileSystemStore(this.TestStoreOptions.Name, this.TestStoreOptions.AbsolutePath);
+        }
+
+        private void ResetFileSystemStore(string storeName, string absolutePath)
+        {
+            var process = Process.Start(new ProcessStartInfo("robocopy.exe")
+            {
+                Arguments = $"\"{Path.Combine(this.BasePath, "SampleDirectory")}\" \"{absolutePath}\" /MIR"
+            });
+
+            if (!process.WaitForExit(30000))
+            {
+                process.Kill();
+                throw new TimeoutException($"FileSystem Store '{storeName}' was not reset properly.");
+            }
+        }
+
+        private void ResetAzureStores()
+        {
+            var azCopy = Path.Combine(
+                Environment.ExpandEnvironmentVariables(Configuration["AzCopyPath"]),
+                "AzCopy.exe");
+
+            foreach (var parsedStoreKvp in this.AzureParsedOptions.ParsedStores)
+            {
+                var cloudStorageAccount = CloudStorageAccount.Parse(parsedStoreKvp.Value.ConnectionString);
+                var cloudStoragekey = cloudStorageAccount.Credentials.ExportBase64EncodedKey();
+                var containerName = parsedStoreKvp.Value.FolderName;
+
+                var dest = cloudStorageAccount.BlobStorageUri.PrimaryUri.ToString() + containerName;
+
+                var client = cloudStorageAccount.CreateCloudBlobClient();
+
+                var container = client.GetContainerReference(containerName);
+                container.CreateIfNotExistsAsync().Wait();
+
+                var arguments = $"/Source:\"{Path.Combine(this.BasePath, "SampleDirectory")}\" /Dest:\"{dest}\" /DestKey:{cloudStoragekey} /S /y";
+                var process = Process.Start(new ProcessStartInfo(azCopy)
+                {
+                    Arguments = arguments
+                });
+
+                if (!process.WaitForExit(30000))
+                {
+                    process.Kill();
+                    throw new TimeoutException($"Azure Store '{parsedStoreKvp.Key}' was not reset properly.");
+                }
             }
         }
     }

@@ -9,6 +9,6 @@
             this.store = storageFactory.GetStore(storeName);
         }
 
-        public IStore Store { get { return this.store; } }
+        public IStore Store => this.store;
     }
 }

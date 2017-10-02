@@ -15,6 +15,8 @@
 
         string CacheControl { get; set; }
 
+        string ContentMD5 { get; }
+
         IDictionary<string, string> Metadata { get; }
     }
 }

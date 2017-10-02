@@ -1,5 +1,6 @@
 ﻿namespace GeekLearning.Storage.FileSystem.Server
 {
+    using GeekLearning.Storage.FileSystem.Configuration;
     using Microsoft.AspNetCore.Http;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Logging;
@@ -12,14 +13,14 @@
 
         private ILogger<FileSystemStorageServerMiddleware> logger;
         private IOptions<FileSystemStorageServerOptions> serverOptions;
-        private IOptions<StorageOptions> storageOptions;
+        private FileSystemParsedOptions fileSystemParsedOptions;
 
         public FileSystemStorageServerMiddleware(RequestDelegate next,
             IOptions<FileSystemStorageServerOptions> serverOptions,
             ILogger<FileSystemStorageServerMiddleware> logger,
-            IOptions<StorageOptions> storageOptions)
+            IOptions<FileSystemParsedOptions> fileSystemParsedOptions)
         {
-            this.storageOptions = storageOptions;
+            this.fileSystemParsedOptions = fileSystemParsedOptions.Value;
             this.next = next;
             this.serverOptions = serverOptions;
             this.logger = logger;
@@ -33,12 +34,10 @@
                 var storeName = context.Request.Path.Value.Substring(1, subPathStart - 1);
                 var storageFactory = context.RequestServices.GetRequiredService<IStorageFactory>();
 
-                StorageOptions.StorageStoreOptions storeOptions;
-                if (this.storageOptions.Value.Stores.TryGetValue(storeName, out storeOptions)
-                    && storeOptions.Provider == "FileSystem")
+                if (this.fileSystemParsedOptions.ParsedStores.TryGetValue(storeName, out var storeOptions)
+                    && storeOptions.ProviderType == FileSystemStorageProvider.ProviderName)
                 {
-                    string access;
-                    if (!storeOptions.Parameters.TryGetValue("Access", out access) && access != "Public")
+                    if (storeOptions.AccessLevel != Storage.Configuration.AccessLevel.Public)
                     {
                         context.Response.StatusCode = StatusCodes.Status403Forbidden;
                         return;

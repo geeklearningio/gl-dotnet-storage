@@ -8,13 +8,15 @@
 
     public class AzureFileReference : IFileReference
     {
-        private Lazy<IFileProperties> propertiesLazy;
+        private Lazy<AzureFileProperties> propertiesLazy;
+        private bool withMetadata;
 
         public AzureFileReference(string path, ICloudBlob cloudBlob, bool withMetadata)
         {
             this.Path = path;
             this.CloudBlob = cloudBlob;
-            this.propertiesLazy = new Lazy<IFileProperties>(() =>
+            this.withMetadata = withMetadata;
+            this.propertiesLazy = new Lazy<AzureFileProperties>(() =>
             {
                 if (withMetadata && cloudBlob.Metadata != null && cloudBlob.Properties != null)
                 {
@@ -43,12 +45,12 @@
             return this.CloudBlob.DeleteAsync();
         }
 
-        public async Task<Stream> ReadAsync()
+        public async ValueTask<Stream> ReadAsync()
         {
             return await this.ReadInMemoryAsync();
         }
 
-        public async Task<MemoryStream> ReadInMemoryAsync()
+        public async ValueTask<MemoryStream> ReadInMemoryAsync()
         {
             var memoryStream = new MemoryStream();
             await this.CloudBlob.DownloadRangeToStreamAsync(memoryStream, null, null);
@@ -61,17 +63,12 @@
             return this.CloudBlob.UploadFromStreamAsync(stream);
         }
 
-        public Task<string> GetExpirableUriAsync()
-        {
-            throw new NotImplementedException();
-        }
-
         public async Task ReadToStreamAsync(Stream targetStream)
         {
             await this.CloudBlob.DownloadRangeToStreamAsync(targetStream, null, null);
         }
 
-        public async Task<string> ReadAllTextAsync()
+        public async ValueTask<string> ReadAllTextAsync()
         {
             using (var reader = new StreamReader(await this.CloudBlob.OpenReadAsync(AccessCondition.GenerateEmptyCondition(), new BlobRequestOptions(), new OperationContext())))
             {
@@ -79,15 +76,39 @@
             }
         }
 
-        public async Task<byte[]> ReadAllBytesAsync()
+        public async ValueTask<byte[]> ReadAllBytesAsync()
         {
             return (await this.ReadInMemoryAsync()).ToArray();
         }
 
-        public async Task SavePropertiesAsync()
+        public Task SavePropertiesAsync()
         {
-            await this.CloudBlob.SetPropertiesAsync();
-            await this.CloudBlob.SetMetadataAsync();
+            return this.propertiesLazy.Value.SaveAsync();
+        }
+
+        public ValueTask<string> GetSharedAccessSignature(ISharedAccessPolicy policy)
+        {
+            var adHocPolicy = new SharedAccessBlobPolicy()
+            {
+                SharedAccessStartTime = policy.StartTime,
+                SharedAccessExpiryTime = policy.ExpiryTime,
+                Permissions = AzureStore.FromGenericToAzure(policy.Permissions),
+            };
+
+            return new ValueTask<string>(this.CloudBlob.GetSharedAccessSignature(adHocPolicy));
+        }
+
+        public async Task FetchProperties()
+        {
+            if (this.withMetadata)
+            {
+                return;
+            }
+
+            await this.CloudBlob.FetchAttributesAsync();
+
+            this.propertiesLazy = new Lazy<AzureFileProperties>(() => new AzureFileProperties(this.CloudBlob));
+            this.withMetadata = true;
         }
     }
 }

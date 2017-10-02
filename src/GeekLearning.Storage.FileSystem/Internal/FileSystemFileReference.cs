@@ -7,9 +7,10 @@
     public class FileSystemFileReference : IFileReference
     {
         private readonly FileSystemStore store;
-        private readonly Lazy<IFileProperties> propertiesLazy;
         private readonly Lazy<string> publicUrlLazy;
         private readonly IExtendedPropertiesProvider extendedPropertiesProvider;
+        private bool withMetadata;
+        private Lazy<IFileProperties> propertiesLazy;
 
         public FileSystemFileReference(
             string filePath,
@@ -24,6 +25,7 @@
             this.Path = path.Replace('\\', '/');
             this.store = store;
             this.extendedPropertiesProvider = extendedPropertiesProvider;
+            this.withMetadata = withMetadata;
 
             this.propertiesLazy = new Lazy<IFileProperties>(() =>
             {
@@ -60,25 +62,19 @@
             return Task.FromResult(true);
         }
 
-        public Task<string> GetExpirableUriAsync()
+        public ValueTask<byte[]> ReadAllBytesAsync()
         {
-            throw new NotImplementedException();
+            return new ValueTask<byte[]>(File.ReadAllBytes(this.FileSystemPath));
         }
 
-        public Task<byte[]> ReadAllBytesAsync()
+        public ValueTask<string> ReadAllTextAsync()
         {
-            return Task.FromResult(File.ReadAllBytes(this.FileSystemPath));
+            return new ValueTask<string>(File.ReadAllText(this.FileSystemPath));
         }
 
-        public Task<string> ReadAllTextAsync()
+        public ValueTask<Stream> ReadAsync()
         {
-            return Task.FromResult(File.ReadAllText(this.FileSystemPath));
-        }
-
-        public Task<Stream> ReadAsync()
-        {
-            Stream stream = File.OpenRead(this.FileSystemPath);
-            return Task.FromResult(stream);
+            return new ValueTask<Stream>(File.OpenRead(this.FileSystemPath));
         }
 
         public async Task ReadToStreamAsync(Stream targetStream)
@@ -108,6 +104,31 @@
                 this.store.AbsolutePath,
                 this,
                 (this.Properties as FileSystemFileProperties).ExtendedProperties);
+        }
+
+        public ValueTask<string> GetSharedAccessSignature(ISharedAccessPolicy policy)
+        {
+            throw new NotSupportedException();
+        }
+
+        public async Task FetchProperties()
+        {
+            if (this.withMetadata)
+            {
+                return;
+            }
+
+            if (this.extendedPropertiesProvider == null)
+            {
+                throw new InvalidOperationException("There is no FileSystem extended properties provider.");
+            }
+
+            var extendedProperties = await this.extendedPropertiesProvider.GetExtendedPropertiesAsync(
+                this.store.AbsolutePath,
+                this);
+
+            this.propertiesLazy = new Lazy<IFileProperties>(() => new FileSystemFileProperties(this.FileSystemPath, extendedProperties));
+            this.withMetadata = true;
         }
     }
 }

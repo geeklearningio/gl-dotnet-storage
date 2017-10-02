@@ -8,24 +8,28 @@
     {
         string Name { get; }
 
-        Task<IFileReference[]> ListAsync(string path, bool recursive, bool withMetadata);
+        Task InitAsync();
 
-        Task<IFileReference[]> ListAsync(string path, string searchPattern, bool recursive, bool withMetadata);
+        ValueTask<IFileReference[]> ListAsync(string path, bool recursive, bool withMetadata);
 
-        Task<IFileReference> GetAsync(IPrivateFileReference file, bool withMetadata);
+        ValueTask<IFileReference[]> ListAsync(string path, string searchPattern, bool recursive, bool withMetadata);
 
-        Task<IFileReference> GetAsync(Uri file, bool withMetadata);
+        ValueTask<IFileReference> GetAsync(IPrivateFileReference file, bool withMetadata);
+
+        ValueTask<IFileReference> GetAsync(Uri file, bool withMetadata);
 
         Task DeleteAsync(IPrivateFileReference file);
 
-        Task<Stream> ReadAsync(IPrivateFileReference file);
+        ValueTask<Stream> ReadAsync(IPrivateFileReference file);
 
-        Task<byte[]> ReadAllBytesAsync(IPrivateFileReference file);
+        ValueTask<byte[]> ReadAllBytesAsync(IPrivateFileReference file);
 
-        Task<string> ReadAllTextAsync(IPrivateFileReference file);
+        ValueTask<string> ReadAllTextAsync(IPrivateFileReference file);
 
-        Task<IFileReference> SaveAsync(byte[] data, IPrivateFileReference file, string contentType);
+        ValueTask<IFileReference> SaveAsync(byte[] data, IPrivateFileReference file, string contentType, OverwritePolicy overwritePolicy = OverwritePolicy.Always);
 
-        Task<IFileReference> SaveAsync(Stream data, IPrivateFileReference file, string contentType);
+        ValueTask<IFileReference> SaveAsync(Stream data, IPrivateFileReference file, string contentType, OverwritePolicy overwritePolicy = OverwritePolicy.Always);
+
+        ValueTask<string> GetSharedAccessSignatureAsync(ISharedAccessPolicy policy);
     }
 }

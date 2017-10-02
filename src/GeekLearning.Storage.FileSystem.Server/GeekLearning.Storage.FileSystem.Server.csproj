@@ -1,0 +1,32 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <Description>Geek Learning File Server based on FileSystem Storage Provider.</Description>
+    <VersionPrefix>0.0.1</VersionPrefix>
+    <Authors>Geek Learning;Cyprien Autexier;Adrien Siffermann</Authors>
+    <TargetFrameworks>net451;netstandard1.4</TargetFrameworks>
+    <AssemblyName>GeekLearning.Storage.FileSystem.Server</AssemblyName>
+    <PackageId>GeekLearning.Storage.FileSystem.Server</PackageId>
+    <NetStandardImplicitPackageVersion>1.6.1</NetStandardImplicitPackageVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\GeekLearning.Storage.FileSystem\GeekLearning.Storage.FileSystem.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="1.1.2" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="1.1.2" />
+    <PackageReference Include="Microsoft.IdentityModel.Tokens" Version="5.1.3" />
+  </ItemGroup>
+
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net451' ">
+    <Reference Include="System" />
+    <Reference Include="Microsoft.CSharp" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Properties\" />
+  </ItemGroup>
+
+</Project>
