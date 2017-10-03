@@ -26,11 +26,6 @@
 
         public IStore BuildStore(string storeName, IStoreOptions storeOptions)
         {
-            if (storeOptions.ProviderType != this.Name)
-            {
-                throw new Exceptions.BadStoreProviderException(this.Name, storeName);
-            }
-           
             return this.BuildStoreInternal(
                 storeName, 
                 storeOptions.ParseStoreOptions<TParsedOptions, TInstanceOptions, TStoreOptions, TScopedStoreOptions>(options));
