@@ -18,7 +18,7 @@
                 throw new ArgumentNullException("options", "Unable to build generic Store. Did you forget to configure your options?");
             }
 
-            this.innerStore = factory.GetStore(nameof(TOptions), options.Value);
+            this.innerStore = factory.GetStore(options.Value.Name, options.Value);
         }
 
         public string Name => this.innerStore.Name;
