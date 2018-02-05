@@ -144,7 +144,7 @@
             var properties = fileReference.Properties as Internal.FileSystemFileProperties;
             var hashes = ComputeHashes(data);
 
-            if (!fileExists
+            if (!fileExists 
                 || overwritePolicy == OverwritePolicy.Always
                 || (overwritePolicy == OverwritePolicy.IfContentModified && properties.ContentMD5 != hashes.ContentMD5))
             {
