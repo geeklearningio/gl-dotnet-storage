@@ -120,7 +120,7 @@
             return await fileReference.ReadAllTextAsync();
         }
 
-        public async ValueTask<IFileReference> SaveAsync(byte[] data, IPrivateFileReference file, string contentType, OverwritePolicy overwritePolicy = OverwritePolicy.Always)
+        public async ValueTask<IFileReference> SaveAsync(byte[] data, IPrivateFileReference file, string contentType, OverwritePolicy overwritePolicy = OverwritePolicy.Always, IDictionary<string, string> metadata = null)
         {
             using (var stream = new MemoryStream(data, 0, data.Length))
             {
@@ -128,7 +128,7 @@
             }
         }
 
-        public async ValueTask<IFileReference> SaveAsync(Stream data, IPrivateFileReference file, string contentType, OverwritePolicy overwritePolicy = OverwritePolicy.Always)
+        public async ValueTask<IFileReference> SaveAsync(Stream data, IPrivateFileReference file, string contentType, OverwritePolicy overwritePolicy = OverwritePolicy.Always, IDictionary<string, string> metadata = null)
         {
             var fileReference = await this.InternalGetAsync(file, withMetadata: true, checkIfExists: false);
             var fileExists = File.Exists(fileReference.FileSystemPath);
@@ -144,7 +144,7 @@
             var properties = fileReference.Properties as Internal.FileSystemFileProperties;
             var hashes = ComputeHashes(data);
 
-            if (!fileExists
+            if (!fileExists 
                 || overwritePolicy == OverwritePolicy.Always
                 || (overwritePolicy == OverwritePolicy.IfContentModified && properties.ContentMD5 != hashes.ContentMD5))
             {
@@ -159,6 +159,14 @@
             properties.ContentType = contentType;
             properties.ExtendedProperties.ETag = hashes.ETag;
             properties.ExtendedProperties.ContentMD5 = hashes.ContentMD5;
+
+            if (metadata != null)
+            {
+                foreach (var kvp in metadata)
+                {
+                    properties.Metadata.Add(kvp.Key, kvp.Value);
+                }
+            }
 
             await fileReference.SavePropertiesAsync();
 
