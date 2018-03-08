@@ -156,15 +156,15 @@
             return await fileReference.ReadAllTextAsync();
         }
 
-        public async ValueTask<IFileReference> SaveAsync(byte[] data, IPrivateFileReference file, string contentType, OverwritePolicy overwritePolicy = OverwritePolicy.Always)
+        public async ValueTask<IFileReference> SaveAsync(byte[] data, IPrivateFileReference file, string contentType, OverwritePolicy overwritePolicy = OverwritePolicy.Always, IDictionary<string, string> metadata = null)
         {
             using (var stream = new SyncMemoryStream(data, 0, data.Length))
             {
-                return await this.SaveAsync(stream, file, contentType, overwritePolicy);
+                return await this.SaveAsync(stream, file, contentType, overwritePolicy, metadata);
             }
         }
 
-        public async ValueTask<IFileReference> SaveAsync(Stream data, IPrivateFileReference file, string contentType, OverwritePolicy overwritePolicy = OverwritePolicy.Always)
+        public async ValueTask<IFileReference> SaveAsync(Stream data, IPrivateFileReference file, string contentType, OverwritePolicy overwritePolicy = OverwritePolicy.Always, IDictionary<string, string> metadata = null)
         {
             var uploadBlob = true;
             var blockBlob = this.container.Value.GetBlockBlobReference(file.Path);
@@ -188,6 +188,14 @@
                         data.Seek(0, SeekOrigin.Begin);
                         uploadBlob = (contentMD5 != blockBlob.Properties.ContentMD5);
                     }
+                }
+            }
+
+            if (metadata != null)
+            {
+                foreach (var kvp in metadata)
+                {
+                    blockBlob.Metadata.Add(kvp.Key, kvp.Value);
                 }
             }
 

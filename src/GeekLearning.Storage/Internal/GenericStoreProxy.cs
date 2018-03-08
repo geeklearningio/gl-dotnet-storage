@@ -3,6 +3,7 @@
     using Configuration;
     using Microsoft.Extensions.Options;
     using System;
+    using System.Collections.Generic;
     using System.IO;
     using System.Threading.Tasks;
 
@@ -18,7 +19,7 @@
                 throw new ArgumentNullException("options", "Unable to build generic Store. Did you forget to configure your options?");
             }
 
-            this.innerStore = factory.GetStore(nameof(TOptions), options.Value);
+            this.innerStore = factory.GetStore(options.Value.Name, options.Value);
         }
 
         public string Name => this.innerStore.Name;
@@ -41,9 +42,9 @@
 
         public ValueTask<Stream> ReadAsync(IPrivateFileReference file) => this.innerStore.ReadAsync(file);
 
-        public ValueTask<IFileReference> SaveAsync(Stream data, IPrivateFileReference file, string contentType, OverwritePolicy overwritePolicy = OverwritePolicy.Always) => this.innerStore.SaveAsync(data, file, contentType, overwritePolicy);
+        public ValueTask<IFileReference> SaveAsync(Stream data, IPrivateFileReference file, string contentType, OverwritePolicy overwritePolicy = OverwritePolicy.Always, IDictionary<string, string> metadata = null) => this.innerStore.SaveAsync(data, file, contentType, overwritePolicy);
 
-        public ValueTask<IFileReference> SaveAsync(byte[] data, IPrivateFileReference file, string contentType, OverwritePolicy overwritePolicy = OverwritePolicy.Always) => this.innerStore.SaveAsync(data, file, contentType, overwritePolicy);
+        public ValueTask<IFileReference> SaveAsync(byte[] data, IPrivateFileReference file, string contentType, OverwritePolicy overwritePolicy = OverwritePolicy.Always, IDictionary<string, string> metadata = null) => this.innerStore.SaveAsync(data, file, contentType, overwritePolicy);
 
         public ValueTask<string> GetSharedAccessSignatureAsync(ISharedAccessPolicy policy) => this.innerStore.GetSharedAccessSignatureAsync(policy);
     }

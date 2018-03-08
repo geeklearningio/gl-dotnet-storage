@@ -4,13 +4,9 @@
     <Description>File System based extended properties storage provider for the FileSystem provider.</Description>
     <VersionPrefix>0.0.1</VersionPrefix>
     <Authors>Geek Learning;Adrien Siffermann;Cyprien Autexier</Authors>
-    <TargetFrameworks>net45;netstandard1.3</TargetFrameworks>
+    <TargetFrameworks>netstandard2</TargetFrameworks>
     <AssemblyName>GeekLearning.Storage.FileSystem.ExtendedProperties.FileSystem</AssemblyName>
     <PackageId>GeekLearning.Storage.FileSystem.ExtendedProperties.FileSystem</PackageId>
-    <NetStandardImplicitPackageVersion>1.6.1</NetStandardImplicitPackageVersion>
-    <GenerateAssemblyConfigurationAttribute>false</GenerateAssemblyConfigurationAttribute>
-    <GenerateAssemblyCompanyAttribute>false</GenerateAssemblyCompanyAttribute>
-    <GenerateAssemblyProductAttribute>false</GenerateAssemblyProductAttribute>
   </PropertyGroup>
 
   <ItemGroup>
@@ -18,12 +14,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Newtonsoft.Json" Version="10.0.2" />
-  </ItemGroup>
-
-  <ItemGroup Condition=" '$(TargetFramework)' == 'net45' ">
-    <Reference Include="System" />
-    <Reference Include="Microsoft.CSharp" />
+    <PackageReference Include="Newtonsoft.Json" Version="10.0.3" />
   </ItemGroup>
 
   <ItemGroup>
