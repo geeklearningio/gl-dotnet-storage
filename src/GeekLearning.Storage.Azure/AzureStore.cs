@@ -113,13 +113,13 @@
             }
             while (continuationToken != null);
 
-            var pathMap = results.OfType<ICloudBlob>().Select(blob => new Internal.AzureFileReference(blob, withMetadata: withMetadata)).ToDictionary(x => x.Path);
+            var pathMap = results.OfType<ICloudBlob>()
+                .Select(blob => new Internal.AzureFileReference(blob, withMetadata: withMetadata))
+                .ToDictionary(x => Path.GetFileName(x.Path));
 
-            var filteredResults = matcher.Execute(
-                new Internal.AzureListDirectoryWrapper(path,
-                pathMap));
+            var filteredResults = matcher.Execute(new Internal.AzureListDirectoryWrapper(path, pathMap));
 
-            return filteredResults.Files.Select(x => pathMap[path + x.Path]).ToArray();
+            return filteredResults.Files.Select(x => pathMap[x.Path]).ToArray();
         }
 
         public async ValueTask<IFileReference> GetAsync(IPrivateFileReference file, bool withMetadata)
