@@ -1,9 +1,10 @@
 ﻿namespace GeekLearning.Storage.Azure
 {
     using GeekLearning.Storage.Azure.Configuration;
-    using Microsoft.WindowsAzure.Storage;
-    using Microsoft.WindowsAzure.Storage.Blob;
-    using Microsoft.WindowsAzure.Storage.Core;
+    using global::Azure;
+    using global::Azure.Storage.Blobs;
+    using global::Azure.Storage.Blobs.Models;
+    using global::Azure.Storage.Sas;
     using System;
     using System.Collections.Generic;
     using System.IO;
@@ -14,34 +15,32 @@
     public class AzureStore : IStore
     {
         private readonly AzureStoreOptions storeOptions;
-        private readonly Lazy<CloudBlobClient> client;
-        private readonly Lazy<CloudBlobContainer> container;
+        private readonly Lazy<BlobContainerClient> container;
 
         public AzureStore(AzureStoreOptions storeOptions)
         {
             storeOptions.Validate();
 
             this.storeOptions = storeOptions;
-            this.client = new Lazy<CloudBlobClient>(() => CloudStorageAccount.Parse(storeOptions.ConnectionString).CreateCloudBlobClient());
-            this.container = new Lazy<CloudBlobContainer>(() => this.client.Value.GetContainerReference(storeOptions.FolderName));
+            this.container = new Lazy<BlobContainerClient>(() => new BlobContainerClient(storeOptions.ConnectionString, storeOptions.FolderName));
         }
 
         public string Name => this.storeOptions.Name;
 
         public Task InitAsync()
         {
-            BlobContainerPublicAccessType accessType;
+            PublicAccessType accessType;
             switch (this.storeOptions.AccessLevel)
             {
                 case Storage.Configuration.AccessLevel.Public:
-                    accessType = BlobContainerPublicAccessType.Container;
+                    accessType = PublicAccessType.BlobContainer;
                     break;
                 case Storage.Configuration.AccessLevel.Confidential:
-                    accessType = BlobContainerPublicAccessType.Blob;
+                    accessType = PublicAccessType.Blob;
                     break;
                 case Storage.Configuration.AccessLevel.Private:
                 default:
-                    accessType = BlobContainerPublicAccessType.Off;
+                    accessType = PublicAccessType.None;
                     break;
             }
 
@@ -62,18 +61,15 @@
                 }
             }
 
-            BlobContinuationToken continuationToken = null;
-            List<IListBlobItem> results = new List<IListBlobItem>();
+            List<BlobItem> results = new List<BlobItem>();
+            var resultSegment = this.container.Value.GetBlobsAsync(withMetadata ? BlobTraits.Metadata : BlobTraits.None, BlobStates.None, path).AsPages(default, 1000);
 
-            do
+            await foreach (Page<BlobItem> blobPage in resultSegment)
             {
-                var response = await this.container.Value.ListBlobsSegmentedAsync(path, recursive, withMetadata ? BlobListingDetails.Metadata : BlobListingDetails.None, null, continuationToken, new BlobRequestOptions(), new OperationContext());
-                continuationToken = response.ContinuationToken;
-                results.AddRange(response.Results);
+                results.AddRange(blobPage.Values);
             }
-            while (continuationToken != null);
 
-            return results.OfType<ICloudBlob>().Select(blob => new Internal.AzureFileReference(blob, withMetadata: withMetadata)).ToArray();
+            return results.Select(blob => new Internal.AzureFileReference(this.container.Value, blob, withMetadata: withMetadata)).ToArray();
         }
 
         public async ValueTask<IFileReference[]> ListAsync(string path, string searchPattern, bool recursive, bool withMetadata)
@@ -101,20 +97,17 @@
             Microsoft.Extensions.FileSystemGlobbing.Matcher matcher = new Microsoft.Extensions.FileSystemGlobbing.Matcher(StringComparison.Ordinal);
             matcher.AddInclude(searchPattern);
 
-            var operationContext = new OperationContext();
-            BlobContinuationToken continuationToken = null;
-            List<IListBlobItem> results = new List<IListBlobItem>();
+            List<BlobItem> results = new List<BlobItem>();
+            var resultSegment = this.container.Value.GetBlobsAsync(withMetadata ? BlobTraits.Metadata : BlobTraits.None, BlobStates.None, path).AsPages(default, 1000);
 
-            do
+            await foreach (Page<BlobItem> blobPage in resultSegment)
             {
-                var response = await this.container.Value.ListBlobsSegmentedAsync(prefix, recursive, withMetadata ? BlobListingDetails.Metadata : BlobListingDetails.None, null, continuationToken, new BlobRequestOptions(), new OperationContext());
-                continuationToken = response.ContinuationToken;
-                results.AddRange(response.Results);
+                results.AddRange(blobPage.Values);
             }
-            while (continuationToken != null);
 
-            var pathMap = results.OfType<ICloudBlob>()
-                .Select(blob => new Internal.AzureFileReference(blob, withMetadata: withMetadata))
+
+            var pathMap = results
+                .Select(blob => new Internal.AzureFileReference(this.container.Value, blob, withMetadata: withMetadata))
                 .ToDictionary(x => Path.GetFileName(x.Path));
 
             var filteredResults = matcher.Execute(new Internal.AzureListDirectoryWrapper(path, pathMap));
@@ -158,7 +151,7 @@
 
         public async ValueTask<IFileReference> SaveAsync(byte[] data, IPrivateFileReference file, string contentType, OverwritePolicy overwritePolicy = OverwritePolicy.Always, IDictionary<string, string> metadata = null)
         {
-            using (var stream = new SyncMemoryStream(data, 0, data.Length))
+            using (var stream = new MemoryStream(data, 0, data.Length))
             {
                 return await this.SaveAsync(stream, file, contentType, overwritePolicy, metadata);
             }
@@ -167,8 +160,10 @@
         public async ValueTask<IFileReference> SaveAsync(Stream data, IPrivateFileReference file, string contentType, OverwritePolicy overwritePolicy = OverwritePolicy.Always, IDictionary<string, string> metadata = null)
         {
             var uploadBlob = true;
-            var blockBlob = this.container.Value.GetBlockBlobReference(file.Path);
+            var blockBlob = this.container.Value.GetBlobClient(file.Path);
             var blobExists = await blockBlob.ExistsAsync();
+
+            Response<BlobProperties> blobProperties = null;
 
             if (blobExists)
             {
@@ -177,7 +172,7 @@
                     throw new Exceptions.FileAlreadyExistsException(this.Name, file.Path);
                 }
 
-                await blockBlob.FetchAttributesAsync();
+                blobProperties = await blockBlob.GetPropertiesAsync();
 
                 if (overwritePolicy == OverwritePolicy.IfContentModified)
                 {
@@ -186,25 +181,33 @@
                         data.Seek(0, SeekOrigin.Begin);
                         var contentMD5 = Convert.ToBase64String(md5.ComputeHash(data));
                         data.Seek(0, SeekOrigin.Begin);
-                        uploadBlob = (contentMD5 != blockBlob.Properties.ContentMD5);
+                        uploadBlob = (contentMD5 != Convert.ToBase64String(blobProperties.Value.ContentHash));
                     }
                 }
+            }
+
+            if (uploadBlob)
+            {
+                await blockBlob.UploadAsync(data);
+            }
+
+            if (blobProperties == null)
+            {
+                blobProperties = await blockBlob.GetPropertiesAsync();
             }
 
             if (metadata != null)
             {
                 foreach (var kvp in metadata)
                 {
-                    blockBlob.Metadata.Add(kvp.Key, kvp.Value);
+                    blobProperties.Value.Metadata[kvp.Key] = kvp.Value;
                 }
+
+                await blockBlob.SetMetadataAsync(blobProperties.Value.Metadata);
             }
 
-            if (uploadBlob)
-            {
-                await blockBlob.UploadFromStreamAsync(data);
-            }
 
-            var reference = new Internal.AzureFileReference(blockBlob, withMetadata: true);
+            var reference = new Internal.AzureFileReference(container.Value, blockBlob.Name, blobProperties.Value);;
 
             if (reference.Properties.ContentType != contentType)
             {
@@ -217,48 +220,60 @@
 
         public ValueTask<string> GetSharedAccessSignatureAsync(ISharedAccessPolicy policy)
         {
-            var adHocPolicy = new SharedAccessBlobPolicy()
+
+            BlobSasBuilder sasBuilder = new BlobSasBuilder()
             {
-                SharedAccessStartTime = policy.StartTime,
-                SharedAccessExpiryTime = policy.ExpiryTime,
-                Permissions = FromGenericToAzure(policy.Permissions),
+                BlobContainerName = storeOptions.FolderName,
+                Resource = "c",
             };
 
-            return new ValueTask<string>(this.container.Value.GetSharedAccessSignature(adHocPolicy));
+            if (policy.StartTime.HasValue)
+            {
+                sasBuilder.StartsOn = policy.StartTime.Value;
+            }
+            if (policy.ExpiryTime.HasValue)
+            {
+                sasBuilder.ExpiresOn = policy.ExpiryTime.Value;
+            }
+
+            sasBuilder.SetPermissions(FromGenericToAzure(policy.Permissions));
+
+            return new ValueTask<string>(this.container.Value.GenerateSasUri(sasBuilder).ToString());
         }
 
-        internal static SharedAccessBlobPermissions FromGenericToAzure(SharedAccessPermissions permissions)
+        internal static BlobSasPermissions FromGenericToAzure(SharedAccessPermissions permissions)
         {
-            var result = SharedAccessBlobPermissions.None;
+
+            var result = (BlobSasPermissions)0;
 
             if (permissions.HasFlag(SharedAccessPermissions.Add))
             {
-                result |= SharedAccessBlobPermissions.Add;
+                result |= BlobSasPermissions.Add;
             }
 
             if (permissions.HasFlag(SharedAccessPermissions.Create))
             {
-                result |= SharedAccessBlobPermissions.Create;
+                result |= BlobSasPermissions.Create;
             }
 
             if (permissions.HasFlag(SharedAccessPermissions.Delete))
             {
-                result |= SharedAccessBlobPermissions.Delete;
+                result |= BlobSasPermissions.Delete;
             }
 
             if (permissions.HasFlag(SharedAccessPermissions.List))
             {
-                result |= SharedAccessBlobPermissions.List;
+                result |= BlobSasPermissions.List;
             }
 
             if (permissions.HasFlag(SharedAccessPermissions.Read))
             {
-                result |= SharedAccessBlobPermissions.Read;
+                result |= BlobSasPermissions.Read;
             }
 
             if (permissions.HasFlag(SharedAccessPermissions.Write))
             {
-                result |= SharedAccessBlobPermissions.Write;
+                result |= BlobSasPermissions.Write;
             }
 
             return result;
@@ -273,37 +288,21 @@
         {
             try
             {
-                ICloudBlob blob;
+                BlobClient blobClient = this.container.Value.GetBlobClient(uri.AbsolutePath);
 
-                if (uri.IsAbsoluteUri)
+                if (!withMetadata)
                 {
-                    // When the URI is absolute, we cannot get a simple reference to the blob, so the
-                    // properties and metadata are fetched, even if it was not asked.
-
-                    blob = await this.client.Value.GetBlobReferenceFromServerAsync(uri);
-                    withMetadata = true;
-                }
-                else
-                {
-                    if (withMetadata)
+                    if (!(await blobClient.ExistsAsync()))
                     {
-                        blob = await this.container.Value.GetBlobReferenceFromServerAsync(uri.ToString());
-                    }
-                    else
-                    {
-                        blob = this.container.Value.GetBlockBlobReference(uri.ToString());
-                        if (!(await blob.ExistsAsync()))
-                        {
-                            return null;
-                        }
+                        return null;
                     }
                 }
 
-                return new Internal.AzureFileReference(blob, withMetadata);
+                return new Internal.AzureFileReference(this.container.Value, uri.AbsolutePath, await blobClient.GetPropertiesAsync());
             }
-            catch (StorageException storageException)
+            catch (RequestFailedException storageException)
             {
-                if (storageException.RequestInformation.HttpStatusCode == 404)
+                if (storageException.Status == 404)
                 {
                     return null;
                 }

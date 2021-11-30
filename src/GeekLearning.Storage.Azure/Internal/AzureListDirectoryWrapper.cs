@@ -1,7 +1,6 @@
 ﻿namespace GeekLearning.Storage.Azure.Internal
 {
     using Microsoft.Extensions.FileSystemGlobbing.Abstractions;
-    using Microsoft.WindowsAzure.Storage.Blob;
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -33,12 +32,6 @@
             {
                 this.name = path;
             }
-        }
-
-        public AzureListDirectoryWrapper(CloudBlobDirectory blobDirectory, AzureListDirectoryWrapper parent = null)
-        {
-            this.ParentDirectory = parent;
-            this.fullName = blobDirectory.Prefix;
         }
 
         public override string FullName => this.fullName;

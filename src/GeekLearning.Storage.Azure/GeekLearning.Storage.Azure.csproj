@@ -7,6 +7,7 @@
     <TargetFrameworks>netstandard2</TargetFrameworks>
     <AssemblyName>GeekLearning.Storage.Azure</AssemblyName>
     <PackageId>GeekLearning.Storage.Azure</PackageId>
+    <LangVersion>8.0</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>
@@ -17,7 +18,7 @@
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="2.0.0" />
     <PackageReference Include="Microsoft.Extensions.Options" Version="2.0.0" />
     <PackageReference Include="Microsoft.Extensions.FileSystemGlobbing" Version="2.0.0" />
-    <PackageReference Include="WindowsAzure.Storage" Version="8.4.0" />
+    <PackageReference Include="Azure.Storage.Blobs" Version="12.10.0" />
   </ItemGroup>
 
   <ItemGroup>
