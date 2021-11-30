@@ -6,7 +6,6 @@
     using Microsoft.Extensions.Options;
     using Microsoft.Extensions.PlatformAbstractions;
     using Microsoft.WindowsAzure.Storage;
-    using Microsoft.WindowsAzure.Storage.Blob;
     using Storage;
     using System;
     using System.Collections.Generic;
@@ -14,6 +13,7 @@
     using System.IO;
     using GeekLearning.Storage.Azure.Configuration;
     using GeekLearning.Storage.FileSystem.Configuration;
+    using System.Runtime.InteropServices;
 
     public class StoresFixture : IDisposable
     {
@@ -125,23 +125,43 @@
 
         private void ResetFileSystemStore(string storeName, string absolutePath)
         {
-            var process = Process.Start(new ProcessStartInfo("robocopy.exe")
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
             {
-                Arguments = $"\"{Path.Combine(this.BasePath, "SampleDirectory")}\" \"{absolutePath}\" /MIR"
-            });
+                var process = Process.Start(new ProcessStartInfo("cp")
+                {
+                    Arguments = $"-apv \"{Path.Combine(this.BasePath, "SampleDirectory")}\" \"{absolutePath}\""
+                });
 
-            if (!process.WaitForExit(30000))
-            {
-                process.Kill();
-                throw new TimeoutException($"FileSystem Store '{storeName}' was not reset properly.");
+                if (!process.WaitForExit(30000))
+                {
+                    process.Kill();
+                    throw new TimeoutException($"FileSystem Store '{storeName}' was not reset properly.");
+                }
+
+                if (process.ExitCode != 0)
+                {
+                    throw new TimeoutException($"FileSystem Store '{storeName}' was not copied properly.");
+                }
             }
+            else
+            {
+                var process = Process.Start(new ProcessStartInfo("robocopy.exe")
+                {
+                    Arguments = $"\"{Path.Combine(this.BasePath, "SampleDirectory")}\" \"{absolutePath}\" /MIR"
+                });
+
+                if (!process.WaitForExit(30000))
+                {
+                    process.Kill();
+                    throw new TimeoutException($"FileSystem Store '{storeName}' was not reset properly.");
+                }
+            }
+
         }
 
         private void ResetAzureStores()
         {
-            var azCopy = Path.Combine(
-                Environment.ExpandEnvironmentVariables(Configuration["AzCopyPath"]),
-                "AzCopy.exe");
+            var azCopy = Environment.ExpandEnvironmentVariables(Configuration["AzCopyPath"]);
 
             foreach (var parsedStoreKvp in this.AzureParsedOptions.ParsedStores)
             {
@@ -156,17 +176,40 @@
                 var container = client.GetContainerReference(containerName);
                 container.CreateIfNotExistsAsync().Wait();
 
-                var arguments = $"/Source:\"{Path.Combine(this.BasePath, "SampleDirectory")}\" /Dest:\"{dest}\" /DestKey:{cloudStoragekey} /S /y";
-                var process = Process.Start(new ProcessStartInfo(azCopy)
+                var sas = container.GetSharedAccessSignature(new Microsoft.WindowsAzure.Storage.Blob.SharedAccessBlobPolicy
                 {
-                    Arguments = arguments
+                    SharedAccessExpiryTime = DateTimeOffset.UtcNow.AddHours(1),
+                    Permissions = (Microsoft.WindowsAzure.Storage.Blob.SharedAccessBlobPermissions)(-1),
                 });
+
+                var arguments = $"copy \"{Path.Combine(this.BasePath, "SampleDirectory/*")}\" \"{dest}{sas}\"  --recursive=true";
+
+
+                var processStartInfo = new ProcessStartInfo(azCopy)
+                {
+                    Arguments = arguments,
+                    UseShellExecute = false,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true
+                };
+
+                var process = new Process { StartInfo = processStartInfo };
+
+                process.Start();
 
                 if (!process.WaitForExit(30000))
                 {
                     process.Kill();
                     throw new TimeoutException($"Azure Store '{parsedStoreKvp.Key}' was not reset properly.");
                 }
+
+                if (process.ExitCode != 0)
+                {
+                    var error =  process.StandardError.ReadToEnd();
+                    throw new TimeoutException($"Azure Store '{parsedStoreKvp.Key}' was not populated because of an error: {error}");
+                }
+                
+                var output = process.StandardOutput.ReadToEnd();
             }
         }
     }
