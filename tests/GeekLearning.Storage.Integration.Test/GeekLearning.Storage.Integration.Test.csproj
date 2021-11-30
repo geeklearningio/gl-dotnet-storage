@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netcoreapp2.0</TargetFrameworks>
+    <TargetFrameworks>netcoreapp6.0</TargetFrameworks>
     <AssemblyName>GeekLearning.Storage.Integration.Test</AssemblyName>
     <PackageId>GeekLearning.Storage.Integration.Test</PackageId>
   </PropertyGroup>
