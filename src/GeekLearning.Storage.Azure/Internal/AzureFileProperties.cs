@@ -1,29 +1,35 @@
 ﻿namespace GeekLearning.Storage.Azure.Internal
 {
-    using Microsoft.WindowsAzure.Storage.Blob;
     using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Net;
     using System.Threading.Tasks;
+    using global::Azure.Storage.Blobs;
+    using global::Azure.Storage.Blobs.Models;
 
     public class AzureFileProperties : IFileProperties
     {
         private const string DefaultCacheControl = "max-age=300, must-revalidate";
-        private readonly ICloudBlob cloudBlob;
+        private readonly BlobClient client;
         private readonly Dictionary<string, string> decodedMetadata;
 
-        public AzureFileProperties(ICloudBlob cloudBlob)
-        {
-            this.cloudBlob = cloudBlob;
-            if (string.IsNullOrEmpty(this.cloudBlob.Properties.CacheControl))
-            {
-                this.cloudBlob.Properties.CacheControl = DefaultCacheControl;
-            }
 
-            if (this.cloudBlob.Metadata != null)
+        public AzureFileProperties(BlobClient client, BlobProperties blobProperties)
+        {
+            this.client = client;
+            this.LastModified = blobProperties.LastModified;
+            this.Length = blobProperties.ContentLength;
+            this.ContentType = blobProperties.ContentType;
+            this.ContentDisposition = blobProperties.ContentDisposition;
+            this.ContentEncoding = blobProperties.ContentEncoding;
+            this.CacheControl = blobProperties.CacheControl;
+            this.ContentMD5 = Convert.ToBase64String(blobProperties.ContentHash);
+            this.ETag = blobProperties.ETag.ToString();
+
+            if (blobProperties.Metadata != null)
             {
-                decodedMetadata = this.cloudBlob.Metadata.ToDictionary(m => m.Key, m => WebUtility.HtmlDecode(m.Value));
+                decodedMetadata = blobProperties.Metadata.ToDictionary(m => m.Key, m => WebUtility.HtmlDecode(m.Value));
             }
             else
             {
@@ -31,38 +37,63 @@
             }
         }
 
-        public DateTimeOffset? LastModified => this.cloudBlob.Properties.LastModified;
-
-        public long Length => this.cloudBlob.Properties.Length;
-
-        public string ContentType
+        public AzureFileProperties(BlobClient client, BlobItem cloudBlob)
         {
-            get { return this.cloudBlob.Properties.ContentType; }
-            set { this.cloudBlob.Properties.ContentType = value; }
+            this.client = client;
+            this.LastModified = cloudBlob.Properties.LastModified;
+            this.Length = cloudBlob.Properties.ContentLength.GetValueOrDefault(0);
+            this.ContentType = cloudBlob.Properties.ContentType;
+            this.ContentDisposition = cloudBlob.Properties.ContentDisposition;
+            this.ContentEncoding = cloudBlob.Properties.ContentEncoding;
+            this.CacheControl = cloudBlob.Properties.CacheControl;
+            this.ContentMD5 = Convert.ToBase64String(cloudBlob.Properties.ContentHash);
+            this.ETag = cloudBlob.Properties.ETag.ToString();
+
+            if (cloudBlob.Metadata != null)
+            {
+                decodedMetadata = cloudBlob.Metadata.ToDictionary(m => m.Key, m => WebUtility.HtmlDecode(m.Value));
+            }
+            else
+            {
+                decodedMetadata = new Dictionary<string, string>();
+            }
         }
 
-        public string ETag => this.cloudBlob.Properties.ETag;
+        public DateTimeOffset? LastModified { get; }
 
-        public string CacheControl
-        {
-            get { return this.cloudBlob.Properties.CacheControl; }
-            set { this.cloudBlob.Properties.CacheControl = value; }
-        }
+        public long Length { get; }
 
-        public string ContentMD5 => this.cloudBlob.Properties.ContentMD5;
+        public string ContentType { get; set; }
+
+        public string ETag { get; set; }
+
+        public string CacheControl { get; set; }
+
+        public string ContentDisposition { get; set; }
+
+        public string ContentEncoding { get; set; }
+
+        public string ContentMD5 { get; }
 
         public IDictionary<string, string> Metadata => this.decodedMetadata;
 
         internal async Task SaveAsync()
         {
-            await this.cloudBlob.SetPropertiesAsync();
+            await client.SetHttpHeadersAsync(new BlobHttpHeaders
+            {
+                ContentType = ContentType,
+                CacheControl = CacheControl,
+                ContentDisposition = ContentDisposition,
+                ContentEncoding = ContentEncoding,
+                ContentHash = Convert.FromBase64String(ContentMD5),
+            });
 
             foreach (var meta in this.decodedMetadata)
             {
-                this.cloudBlob.Metadata[meta.Key] = WebUtility.HtmlEncode(meta.Value);
+                this.Metadata[meta.Key] = WebUtility.HtmlEncode(meta.Value);
             }
 
-            await this.cloudBlob.SetMetadataAsync();
+            await client.SetMetadataAsync(this.Metadata);
         }
     }
 }

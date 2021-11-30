@@ -1,15 +1,15 @@
 ﻿namespace GeekLearning.Storage.Azure.Internal
 {
+    using global::Azure.Storage.Blobs.Models;
     using Microsoft.Extensions.FileSystemGlobbing.Abstractions;
-    using Microsoft.WindowsAzure.Storage.Blob;
 
     public class AzureListFileWrapper : FileInfoBase
     {
-        private ICloudBlob blob;
+        private BlobItem blob;
         private string name;
         private AzureListDirectoryWrapper parent;
 
-        public AzureListFileWrapper(ICloudBlob blob, AzureListDirectoryWrapper parent)
+        public AzureListFileWrapper(BlobItem blob, AzureListDirectoryWrapper parent)
         {
             this.blob = blob;
             var lastSlash = blob.Name.LastIndexOf('/');
