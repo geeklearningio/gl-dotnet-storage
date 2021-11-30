@@ -5,27 +5,27 @@
 
     public class AzureListFileWrapper : FileInfoBase
     {
-        private BlobItem blob;
         private string name;
+        private readonly string blobName;
         private AzureListDirectoryWrapper parent;
 
-        public AzureListFileWrapper(BlobItem blob, AzureListDirectoryWrapper parent)
+        public AzureListFileWrapper(string blobName, AzureListDirectoryWrapper parent)
         {
-            this.blob = blob;
-            var lastSlash = blob.Name.LastIndexOf('/');
+            var lastSlash = blobName.LastIndexOf('/');
             if (lastSlash >= 0)
             {
-                this.name = blob.Name.Substring(lastSlash + 1);
+                this.name = blobName.Substring(lastSlash + 1);
             }
             else
             {
-                this.name = blob.Name;
+                this.name = blobName;
             }
 
+            this.blobName = blobName;
             this.parent = parent;
         }
 
-        public override string FullName => this.blob.Name;
+        public override string FullName => this.blobName;
 
         public override string Name => this.name;
 

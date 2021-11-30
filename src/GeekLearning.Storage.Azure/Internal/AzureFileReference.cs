@@ -18,7 +18,6 @@
             this.client = client;
             this.blobClient = client.GetBlobClient(path);
             this.Path = path;
-            this.CloudBlob = cloudBlob;
             this.withMetadata = withMetadata;
             this.propertiesLazy = new Lazy<AzureFileProperties>(() =>
             {
@@ -57,13 +56,11 @@
 
         public IFileProperties Properties => this.propertiesLazy.Value;
 
-        public string PublicUrl => new Uri( this.client.Uri,  Path).ToString();
-
-        public BlobItem CloudBlob { get; }
+        public string PublicUrl => new Uri( this.client.Uri, Path).ToString();
 
         public Task DeleteAsync()
         {
-            return this.client.DeleteBlobAsync(this.CloudBlob.Name);
+            return this.client.DeleteBlobAsync(Path);
         }
 
         public async ValueTask<Stream> ReadAsync()
@@ -139,7 +136,7 @@
 
             var blobProperties = await this.blobClient.GetPropertiesAsync();
 
-            this.propertiesLazy = new Lazy<AzureFileProperties>(() => new AzureFileProperties(this.blobClient, this.CloudBlob));
+            this.propertiesLazy = new Lazy<AzureFileProperties>(() => new AzureFileProperties(this.blobClient, blobProperties));
             this.withMetadata = true;
         }
     }

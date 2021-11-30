@@ -61,15 +61,44 @@
                 }
             }
 
+            var results = recursive ? await RetrieveRecursive(path, withMetadata) : await Retrieve(path, withMetadata);
+
+            return results.Select(blob => new Internal.AzureFileReference(this.container.Value, blob, withMetadata: withMetadata)).ToArray();
+        }
+
+        private async Task<List<BlobItem>> RetrieveRecursive(string path, bool withMetadata)
+        {
             List<BlobItem> results = new List<BlobItem>();
-            var resultSegment = this.container.Value.GetBlobsAsync(withMetadata ? BlobTraits.Metadata : BlobTraits.None, BlobStates.None, path).AsPages(default, 1000);
+            var resultSegment =
+                this.container.Value
+                    .GetBlobsAsync(withMetadata ? BlobTraits.Metadata : BlobTraits.None, BlobStates.None, prefix:path)
+                    .AsPages(default, 1000);
 
             await foreach (Page<BlobItem> blobPage in resultSegment)
             {
                 results.AddRange(blobPage.Values);
             }
 
-            return results.Select(blob => new Internal.AzureFileReference(this.container.Value, blob, withMetadata: withMetadata)).ToArray();
+            return results;
+        }
+        
+        private async Task<List<BlobItem>> Retrieve(string path, bool withMetadata)
+        {
+            List<BlobItem> results = new List<BlobItem>();
+            var resultSegment =
+                this.container.Value
+                    .GetBlobsByHierarchyAsync(withMetadata ? BlobTraits.Metadata : BlobTraits.None, BlobStates.None, delimiter: "/", prefix: path)
+                    .AsPages(default, 1000);
+
+            await foreach (Page<BlobHierarchyItem> blobPage in resultSegment)
+            {
+                results.AddRange(
+                    blobPage.Values
+                        .Where(item => item.IsBlob)
+                        .Select(item => item.Blob));
+            }
+
+            return results;
         }
 
         public async ValueTask<IFileReference[]> ListAsync(string path, string searchPattern, bool recursive, bool withMetadata)
@@ -97,14 +126,7 @@
             Microsoft.Extensions.FileSystemGlobbing.Matcher matcher = new Microsoft.Extensions.FileSystemGlobbing.Matcher(StringComparison.Ordinal);
             matcher.AddInclude(searchPattern);
 
-            List<BlobItem> results = new List<BlobItem>();
-            var resultSegment = this.container.Value.GetBlobsAsync(withMetadata ? BlobTraits.Metadata : BlobTraits.None, BlobStates.None, path).AsPages(default, 1000);
-
-            await foreach (Page<BlobItem> blobPage in resultSegment)
-            {
-                results.AddRange(blobPage.Values);
-            }
-
+            var results = recursive ? await RetrieveRecursive(prefix, withMetadata) : await Retrieve(prefix, withMetadata);
 
             var pathMap = results
                 .Select(blob => new Internal.AzureFileReference(this.container.Value, blob, withMetadata: withMetadata))

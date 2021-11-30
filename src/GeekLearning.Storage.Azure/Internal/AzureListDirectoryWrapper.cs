@@ -42,7 +42,7 @@
 
         public override IEnumerable<FileSystemInfoBase> EnumerateFileSystemInfos()
         {
-            return this.files.Values.Select(file => new AzureListFileWrapper(file.CloudBlob, this));
+            return this.files.Values.Select(file => new AzureListFileWrapper(file.Path, this));
         }
 
         public override DirectoryInfoBase GetDirectory(string path)
@@ -52,7 +52,7 @@
 
         public override FileInfoBase GetFile(string path)
         {
-            return new AzureListFileWrapper(this.files[path].CloudBlob, this);
+            return new AzureListFileWrapper(this.files[path].Path, this);
         }
     }
 }
