@@ -56,10 +56,14 @@
 
         public IFileProperties Properties => this.propertiesLazy.Value;
 
-        public Task DeleteAsync()
+        public async Task DeleteAsync()
         {
             File.Delete(this.FileSystemPath);
-            return Task.FromResult(true);
+
+            if (extendedPropertiesProvider != null)
+            {
+                await extendedPropertiesProvider.DeleteExtendedPropertiesAsync(this.FileSystemPath, this);
+            }
         }
 
         public ValueTask<byte[]> ReadAllBytesAsync()
