@@ -124,7 +124,7 @@
 
             sasBuilder.SetPermissions(AzureStore.FromGenericToAzure(policy.Permissions));
 
-            return new ValueTask<string>(blobClient.GenerateSasUri(sasBuilder).ToString());
+            return new ValueTask<string>(blobClient.GenerateSasUri(sasBuilder).Query);
         }
 
         public async Task FetchProperties()

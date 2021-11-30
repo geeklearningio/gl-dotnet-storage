@@ -208,36 +208,40 @@
                 }
             }
 
+            var isModified = false;
+
             if (uploadBlob)
             {
-                await blockBlob.UploadAsync(data);
-            }
+                await blockBlob.UploadAsync(data, overwrite: true);
 
-            if (blobProperties == null)
-            {
-                blobProperties = await blockBlob.GetPropertiesAsync();
+                if (blobProperties == null || blobProperties.Value.ContentType != contentType)
+                {
+                    blobProperties = await blockBlob.GetPropertiesAsync();
+                    blockBlob.SetHttpHeaders(new BlobHttpHeaders
+                    {
+                        ContentType = contentType,
+                        CacheControl = blobProperties.Value.CacheControl,
+                        ContentDisposition = blobProperties.Value.ContentDisposition,
+                        ContentEncoding = blobProperties.Value.ContentEncoding,
+                        ContentHash = blobProperties.Value.ContentHash,
+                    });
+                }
+
+                isModified = true;
             }
 
             if (metadata != null)
             {
-                foreach (var kvp in metadata)
-                {
-                    blobProperties.Value.Metadata[kvp.Key] = kvp.Value;
-                }
-
-                await blockBlob.SetMetadataAsync(blobProperties.Value.Metadata);
+                await blockBlob.SetMetadataAsync(metadata);
+                isModified = true;
             }
 
-
-            var reference = new Internal.AzureFileReference(container.Value, blockBlob.Name, blobProperties.Value);;
-
-            if (reference.Properties.ContentType != contentType)
+            if (isModified)
             {
-                reference.Properties.ContentType = contentType;
-                await reference.SavePropertiesAsync();
+                blobProperties = await blockBlob.GetPropertiesAsync();
             }
-
-            return reference;
+            
+            return new Internal.AzureFileReference(container.Value, blockBlob.Name, blobProperties.Value);
         }
 
         public ValueTask<string> GetSharedAccessSignatureAsync(ISharedAccessPolicy policy)
@@ -260,7 +264,7 @@
 
             sasBuilder.SetPermissions(FromGenericToAzure(policy.Permissions));
 
-            return new ValueTask<string>(this.container.Value.GenerateSasUri(sasBuilder).ToString());
+            return new ValueTask<string>(this.container.Value.GenerateSasUri(sasBuilder).Query);
         }
 
         internal static BlobSasPermissions FromGenericToAzure(SharedAccessPermissions permissions)
