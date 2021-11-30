@@ -286,9 +286,11 @@
 
         private async ValueTask<Internal.AzureFileReference> InternalGetAsync(Uri uri, bool withMetadata)
         {
+            var path = uri.IsAbsoluteUri ? uri.AbsolutePath : uri.ToString();
+
             try
             {
-                BlobClient blobClient = this.container.Value.GetBlobClient(uri.AbsolutePath);
+                BlobClient blobClient = this.container.Value.GetBlobClient(path);
 
                 if (!withMetadata)
                 {
@@ -298,7 +300,7 @@
                     }
                 }
 
-                return new Internal.AzureFileReference(this.container.Value, uri.AbsolutePath, await blobClient.GetPropertiesAsync());
+                return new Internal.AzureFileReference(this.container.Value, path, await blobClient.GetPropertiesAsync());
             }
             catch (RequestFailedException storageException)
             {
