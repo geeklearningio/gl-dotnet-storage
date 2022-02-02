@@ -8,6 +8,8 @@
     {
         public string ConnectionString { get; set; }
 
+        public string AuthenticationMode { get; set; }
+
         public string ConnectionStringName { get; set; }
 
         public override IEnumerable<IOptionError> Validate(bool throwOnError = true)

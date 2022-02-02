@@ -1,4 +1,6 @@
-﻿namespace GeekLearning.Storage.Azure
+﻿using Azure.Identity;
+
+namespace GeekLearning.Storage.Azure
 {
     using GeekLearning.Storage.Azure.Configuration;
     using global::Azure;
@@ -22,7 +24,10 @@
             storeOptions.Validate();
 
             this.storeOptions = storeOptions;
-            this.container = new Lazy<BlobContainerClient>(() => new BlobContainerClient(storeOptions.ConnectionString, storeOptions.FolderName));
+            this.container = new Lazy<BlobContainerClient>(() =>
+                storeOptions.AuthenticationMode != "DefaultAzureCredential"
+                    ? new BlobContainerClient(storeOptions.ConnectionString, storeOptions.FolderName)
+                    : new BlobContainerClient(new Uri(storeOptions.ConnectionString), new DefaultAzureCredential()));
         }
 
         public string Name => this.storeOptions.Name;
@@ -63,7 +68,8 @@
 
             var results = recursive ? await RetrieveRecursive(path, withMetadata) : await Retrieve(path, withMetadata);
 
-            return results.Select(blob => new Internal.AzureFileReference(this.container.Value, blob, withMetadata: withMetadata)).ToArray();
+            return results.Select(blob =>
+                new Internal.AzureFileReference(this.container.Value, blob, withMetadata: withMetadata)).ToArray();
         }
 
         private async Task<List<BlobItem>> RetrieveRecursive(string path, bool withMetadata)
@@ -71,7 +77,7 @@
             List<BlobItem> results = new List<BlobItem>();
             var resultSegment =
                 this.container.Value
-                    .GetBlobsAsync(withMetadata ? BlobTraits.Metadata : BlobTraits.None, BlobStates.None, prefix:path)
+                    .GetBlobsAsync(withMetadata ? BlobTraits.Metadata : BlobTraits.None, BlobStates.None, prefix: path)
                     .AsPages(default, 1000);
 
             await foreach (Page<BlobItem> blobPage in resultSegment)
@@ -81,13 +87,14 @@
 
             return results;
         }
-        
+
         private async Task<List<BlobItem>> Retrieve(string path, bool withMetadata)
         {
             List<BlobItem> results = new List<BlobItem>();
             var resultSegment =
                 this.container.Value
-                    .GetBlobsByHierarchyAsync(withMetadata ? BlobTraits.Metadata : BlobTraits.None, BlobStates.None, delimiter: "/", prefix: path)
+                    .GetBlobsByHierarchyAsync(withMetadata ? BlobTraits.Metadata : BlobTraits.None, BlobStates.None,
+                        delimiter: "/", prefix: path)
                     .AsPages(default, 1000);
 
             await foreach (Page<BlobHierarchyItem> blobPage in resultSegment)
@@ -101,7 +108,8 @@
             return results;
         }
 
-        public async ValueTask<IFileReference[]> ListAsync(string path, string searchPattern, bool recursive, bool withMetadata)
+        public async ValueTask<IFileReference[]> ListAsync(string path, string searchPattern, bool recursive,
+            bool withMetadata)
         {
             if (string.IsNullOrWhiteSpace(path))
             {
@@ -123,10 +131,13 @@
                 searchPattern = searchPattern.Substring(firstWildCard);
             }
 
-            Microsoft.Extensions.FileSystemGlobbing.Matcher matcher = new Microsoft.Extensions.FileSystemGlobbing.Matcher(StringComparison.Ordinal);
+            Microsoft.Extensions.FileSystemGlobbing.Matcher matcher =
+                new Microsoft.Extensions.FileSystemGlobbing.Matcher(StringComparison.Ordinal);
             matcher.AddInclude(searchPattern);
 
-            var results = recursive ? await RetrieveRecursive(prefix, withMetadata) : await Retrieve(prefix, withMetadata);
+            var results = recursive
+                ? await RetrieveRecursive(prefix, withMetadata)
+                : await Retrieve(prefix, withMetadata);
 
             var pathMap = results
                 .Select(blob => new Internal.AzureFileReference(this.container.Value, blob, withMetadata: withMetadata))
@@ -171,7 +182,8 @@
             return await fileReference.ReadAllTextAsync();
         }
 
-        public async ValueTask<IFileReference> SaveAsync(byte[] data, IPrivateFileReference file, string contentType, OverwritePolicy overwritePolicy = OverwritePolicy.Always, IDictionary<string, string> metadata = null)
+        public async ValueTask<IFileReference> SaveAsync(byte[] data, IPrivateFileReference file, string contentType,
+            OverwritePolicy overwritePolicy = OverwritePolicy.Always, IDictionary<string, string> metadata = null)
         {
             using (var stream = new MemoryStream(data, 0, data.Length))
             {
@@ -179,7 +191,8 @@
             }
         }
 
-        public async ValueTask<IFileReference> SaveAsync(Stream data, IPrivateFileReference file, string contentType, OverwritePolicy overwritePolicy = OverwritePolicy.Always, IDictionary<string, string> metadata = null)
+        public async ValueTask<IFileReference> SaveAsync(Stream data, IPrivateFileReference file, string contentType,
+            OverwritePolicy overwritePolicy = OverwritePolicy.Always, IDictionary<string, string> metadata = null)
         {
             var uploadBlob = true;
             var blockBlob = this.container.Value.GetBlobClient(file.Path);
@@ -240,13 +253,12 @@
             {
                 blobProperties = await blockBlob.GetPropertiesAsync();
             }
-            
+
             return new Internal.AzureFileReference(container.Value, blockBlob.Name, blobProperties.Value);
         }
 
         public ValueTask<string> GetSharedAccessSignatureAsync(ISharedAccessPolicy policy)
         {
-
             BlobSasBuilder sasBuilder = new BlobSasBuilder()
             {
                 BlobContainerName = storeOptions.FolderName,
@@ -257,6 +269,7 @@
             {
                 sasBuilder.StartsOn = policy.StartTime.Value;
             }
+
             if (policy.ExpiryTime.HasValue)
             {
                 sasBuilder.ExpiresOn = policy.ExpiryTime.Value;
@@ -269,8 +282,7 @@
 
         internal static BlobSasPermissions FromGenericToAzure(SharedAccessPermissions permissions)
         {
-
-            var result = (BlobSasPermissions)0;
+            var result = (BlobSasPermissions) 0;
 
             if (permissions.HasFlag(SharedAccessPermissions.Add))
             {
@@ -305,7 +317,8 @@
             return result;
         }
 
-        private ValueTask<Internal.AzureFileReference> InternalGetAsync(IPrivateFileReference file, bool withMetadata = false)
+        private ValueTask<Internal.AzureFileReference> InternalGetAsync(IPrivateFileReference file,
+            bool withMetadata = false)
         {
             return this.InternalGetAsync(new Uri(file.Path, UriKind.Relative), withMetadata);
         }
@@ -326,7 +339,8 @@
                     }
                 }
 
-                return new Internal.AzureFileReference(this.container.Value, path, await blobClient.GetPropertiesAsync());
+                return new Internal.AzureFileReference(this.container.Value, path,
+                    await blobClient.GetPropertiesAsync());
             }
             catch (RequestFailedException storageException)
             {
