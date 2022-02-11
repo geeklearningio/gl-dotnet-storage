@@ -40,7 +40,7 @@
             this.withMetadata = true;
             this.propertiesLazy = new Lazy<AzureFileProperties>(() =>
             {
-                    return new AzureFileProperties(blobClient, blobProperties);
+                return new AzureFileProperties(blobClient, blobProperties);
             });
         }
 
@@ -56,7 +56,7 @@
 
         public IFileProperties Properties => this.propertiesLazy.Value;
 
-        public string PublicUrl => new Uri( this.client.Uri, Path).ToString();
+        public string PublicUrl => new Uri(this.client.Uri, Path).ToString();
 
         public Task DeleteAsync()
         {
@@ -78,7 +78,7 @@
 
         public Task UpdateAsync(Stream stream)
         {
-            return blobClient.UploadAsync(stream);
+            return blobClient.UploadAsync(stream, overwrite: true);
         }
 
         public async Task ReadToStreamAsync(Stream targetStream)
@@ -117,6 +117,7 @@
             {
                 sasBuilder.StartsOn = policy.StartTime.Value;
             }
+
             if (policy.ExpiryTime.HasValue)
             {
                 sasBuilder.ExpiresOn = policy.ExpiryTime.Value;
@@ -136,7 +137,8 @@
 
             var blobProperties = await this.blobClient.GetPropertiesAsync();
 
-            this.propertiesLazy = new Lazy<AzureFileProperties>(() => new AzureFileProperties(this.blobClient, blobProperties));
+            this.propertiesLazy =
+                new Lazy<AzureFileProperties>(() => new AzureFileProperties(this.blobClient, blobProperties));
             this.withMetadata = true;
         }
     }

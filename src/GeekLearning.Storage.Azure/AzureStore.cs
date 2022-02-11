@@ -216,7 +216,7 @@ namespace GeekLearning.Storage.Azure
                         data.Seek(0, SeekOrigin.Begin);
                         var contentMD5 = Convert.ToBase64String(md5.ComputeHash(data));
                         data.Seek(0, SeekOrigin.Begin);
-                        uploadBlob = (contentMD5 != Convert.ToBase64String(blobProperties.Value.ContentHash));
+                        uploadBlob = contentMD5 != Convert.ToBase64String(blobProperties.Value.ContentHash);
                     }
                 }
             }
@@ -230,7 +230,7 @@ namespace GeekLearning.Storage.Azure
                 if (blobProperties == null || blobProperties.Value.ContentType != contentType)
                 {
                     blobProperties = await blockBlob.GetPropertiesAsync();
-                    blockBlob.SetHttpHeaders(new BlobHttpHeaders
+                    await blockBlob.SetHttpHeadersAsync(new BlobHttpHeaders
                     {
                         ContentType = contentType,
                         CacheControl = blobProperties.Value.CacheControl,
