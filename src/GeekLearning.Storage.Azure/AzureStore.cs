@@ -27,7 +27,8 @@ namespace GeekLearning.Storage.Azure
             this.container = new Lazy<BlobContainerClient>(() =>
                 storeOptions.AuthenticationMode != "DefaultAzureCredential"
                     ? new BlobContainerClient(storeOptions.ConnectionString, storeOptions.FolderName)
-                    : new BlobContainerClient(new Uri(storeOptions.ConnectionString), new DefaultAzureCredential()));
+                    : new BlobContainerClient(new Uri($"{storeOptions.ConnectionString}{storeOptions.FolderName}/"),
+                        new DefaultAzureCredential()));
         }
 
         public string Name => this.storeOptions.Name;
@@ -69,7 +70,9 @@ namespace GeekLearning.Storage.Azure
             var results = recursive ? await RetrieveRecursive(path, withMetadata) : await Retrieve(path, withMetadata);
 
             return results.Select(blob =>
-                new Internal.AzureFileReference(this.container.Value, blob, withMetadata: withMetadata)).ToArray();
+                    new Internal.AzureFileReference(this.container.Value, storeOptions, blob,
+                        withMetadata: withMetadata))
+                .ToArray();
         }
 
         private async Task<List<BlobItem>> RetrieveRecursive(string path, bool withMetadata)
@@ -140,7 +143,7 @@ namespace GeekLearning.Storage.Azure
                 : await Retrieve(prefix, withMetadata);
 
             var pathMap = results
-                .Select(blob => new Internal.AzureFileReference(this.container.Value, blob, withMetadata: withMetadata))
+                .Select(blob => new Internal.AzureFileReference(this.container.Value, storeOptions, blob, withMetadata: withMetadata))
                 .ToDictionary(x => Path.GetFileName(x.Path));
 
             var filteredResults = matcher.Execute(new Internal.AzureListDirectoryWrapper(path, pathMap));

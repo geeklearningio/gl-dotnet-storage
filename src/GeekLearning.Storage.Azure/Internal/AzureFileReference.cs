@@ -1,4 +1,7 @@
-﻿namespace GeekLearning.Storage.Azure.Internal
+﻿using GeekLearning.Storage.Azure.Configuration;
+using GeekLearning.Storage.Configuration;
+
+namespace GeekLearning.Storage.Azure.Internal
 {
     using System;
     using System.IO;
@@ -11,10 +14,13 @@
     {
         private Lazy<AzureFileProperties> propertiesLazy;
         private readonly BlobContainerClient client;
+        private readonly StoreOptions storeOptions;
         private bool withMetadata;
 
-        public AzureFileReference(BlobContainerClient client, string path, BlobItem cloudBlob, bool withMetadata)
+        public AzureFileReference(BlobContainerClient client, AzureStoreOptions storeOptions, string path,
+            BlobItem cloudBlob, bool withMetadata)
         {
+            this.storeOptions = storeOptions;
             this.client = client;
             this.blobClient = client.GetBlobClient(path);
             this.Path = path;
@@ -45,8 +51,9 @@
         }
 
 
-        public AzureFileReference(BlobContainerClient client, BlobItem cloudBlob, bool withMetadata) :
-            this(client, cloudBlob.Name, cloudBlob, withMetadata)
+        public AzureFileReference(BlobContainerClient client, AzureStoreOptions options, BlobItem cloudBlob,
+            bool withMetadata) :
+            this(client, options, cloudBlob.Name, cloudBlob, withMetadata)
         {
         }
 
@@ -56,7 +63,7 @@
 
         public IFileProperties Properties => this.propertiesLazy.Value;
 
-        public string PublicUrl => new Uri(this.client.Uri, Path).ToString();
+        public string PublicUrl => new Uri(this.client.Uri, $"${storeOptions.FolderName}/{Path}").ToString();
 
         public Task DeleteAsync()
         {
