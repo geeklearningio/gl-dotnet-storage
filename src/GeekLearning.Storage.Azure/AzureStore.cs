@@ -1,4 +1,5 @@
-﻿using Azure.Identity;
+﻿using System.ComponentModel.Design;
+using Azure.Identity;
 
 namespace GeekLearning.Storage.Azure
 {
@@ -257,7 +258,7 @@ namespace GeekLearning.Storage.Azure
                 blobProperties = await blockBlob.GetPropertiesAsync();
             }
 
-            return new Internal.AzureFileReference(container.Value, blockBlob.Name, blobProperties.Value);
+            return new Internal.AzureFileReference(container.Value, this.storeOptions, blockBlob.Name, blobProperties.Value);
         }
 
         public ValueTask<string> GetSharedAccessSignatureAsync(ISharedAccessPolicy policy)
@@ -342,7 +343,7 @@ namespace GeekLearning.Storage.Azure
                     }
                 }
 
-                return new Internal.AzureFileReference(this.container.Value, path,
+                return new Internal.AzureFileReference(this.container.Value, this.storeOptions, path,
                     await blobClient.GetPropertiesAsync());
             }
             catch (RequestFailedException storageException)
