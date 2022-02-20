@@ -58,6 +58,11 @@
             {
                 storeOptions.ConnectionString = providerInstanceOptions.ConnectionString;
             }
+            
+            if (string.IsNullOrEmpty(storeOptions.AuthenticationMode))
+            {
+                storeOptions.AuthenticationMode = providerInstanceOptions.AuthenticationMode;
+            }
         }
     }
 }

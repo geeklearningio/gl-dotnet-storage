@@ -7,5 +7,7 @@
         public string ConnectionString { get; set; }
 
         public string ConnectionStringName { get; set; }
+        
+        public string AuthenticationMode { get; set; }
     }
 }
