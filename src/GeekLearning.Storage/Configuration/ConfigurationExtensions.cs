@@ -108,6 +108,7 @@
                     ProviderType = storeOptions.ProviderType,
                     AccessLevel = storeOptions.AccessLevel,
                     FolderName = storeOptions.FolderName,
+                    AuthenticationMode = storeOptions.AuthenticationMode
                 };
             }
 

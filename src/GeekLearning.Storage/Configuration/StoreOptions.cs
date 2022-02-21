@@ -17,6 +17,8 @@
         public AccessLevel AccessLevel { get; set; }
 
         public string FolderName { get; set; }
+        
+        public string AuthenticationMode { get; set; }
 
         public virtual IEnumerable<IOptionError> Validate(bool throwOnError = true)
         {
