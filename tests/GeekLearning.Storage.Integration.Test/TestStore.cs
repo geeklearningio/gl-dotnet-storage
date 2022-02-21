@@ -22,6 +22,8 @@
 
         public string Name { get; set; }
 
+        public string AuthenticationMode { get; set; }
+
         public IEnumerable<IOptionError> Validate(bool throwOnError = true)
         {
             return Enumerable.Empty<IOptionError>();
