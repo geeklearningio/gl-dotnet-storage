@@ -55,5 +55,16 @@
                 Directory.CreateDirectory(directoryPath);
             }
         }
+
+        public Task DeleteExtendedPropertiesAsync(string storeAbsolutePath, IPrivateFileReference file)
+        {
+            var extendedPropertiesPath = this.GetExtendedPropertiesPath(storeAbsolutePath, file);
+            if (File.Exists(extendedPropertiesPath))
+            {
+                File.Delete(extendedPropertiesPath);
+            }
+
+            return Task.FromResult(0);
+        }
     }
 }
